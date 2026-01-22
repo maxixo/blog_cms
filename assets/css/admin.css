@@ -1,0 +1,9 @@
+﻿.admin-page .site-header,
+.admin-page .site-footer {
+    background: #0f1e2b;
+    color: #f5f1e8;
+}
+
+.admin-page a {
+    color: #f5c061;
+}

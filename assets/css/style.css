@@ -1,0 +1,82 @@
+﻿:root {
+    --bg: #f7f5f0;
+    --text: #1f1f1f;
+    --muted: #666666;
+    --accent: #284b63;
+    --border: #ded9d3;
+    --card: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Georgia", "Times New Roman", serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.site-header,
+.site-footer {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+}
+
+.site-header {
+    padding: 20px 0;
+}
+
+.site-footer {
+    border-top: 1px solid var(--border);
+    border-bottom: none;
+    padding: 16px 0;
+    font-size: 0.95rem;
+    color: var(--muted);
+}
+
+.site-logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.site-tagline {
+    margin: 4px 0 0;
+    color: var(--muted);
+}
+
+.site-main {
+    padding: 32px 0 48px;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+}
+
+.card + .card {
+    margin-top: 16px;
+}
+
+.muted {
+    color: var(--muted);
+}

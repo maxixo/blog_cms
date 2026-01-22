@@ -1,0 +1,14 @@
+﻿Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteRule ^(config|includes)/ - [F]
+    RewriteRule ^uploads/posts/.*\.(php|phtml|php[0-9])$ - [F]
+
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Friendly URLs can be added here later.
+</IfModule>
