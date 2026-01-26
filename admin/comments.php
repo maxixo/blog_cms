@@ -1,15 +1,12 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../controllers/admin/CommentManageController.php';
 
-$seoTitle = 'Moderate Comments - ' . SITE_NAME;
-$bodyClass = 'admin-page';
+$controller = new CommentManageController();
+$data = $controller->index();
+extract($data);
 
-require_once __DIR__ . '/../includes/header.php';
-?>
-<section class="container">
-    <h1>Comments</h1>
-    <p>Review and moderate comments here.</p>
-</section>
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+require_once __DIR__ . '/../templates/layout/header.html.php';
+require_once __DIR__ . '/../templates/admin/comment-moderation.html.php';
+require_once __DIR__ . '/../templates/layout/footer.html.php';

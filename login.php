@@ -1,24 +1,16 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/config/config.php';
-require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/controllers/AuthController.php';
 
-$seoTitle = 'Login - ' . SITE_NAME;
+$controller = new AuthController();
+if (is_post_request()) {
+    $data = $controller->login($_POST);
+} else {
+    $data = $controller->showLoginForm();
+}
+extract($data);
 
-require_once __DIR__ . '/includes/header.php';
-?>
-<section class="container">
-    <h1>Login</h1>
-    <form class="card" method="post" action="">
-        <label>
-            Email
-            <input type="email" name="email" required>
-        </label>
-        <label>
-            Password
-            <input type="password" name="password" required>
-        </label>
-        <button type="submit">Sign In</button>
-    </form>
-</section>
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+require_once __DIR__ . '/templates/layout/header.html.php';
+require_once __DIR__ . '/templates/auth/login.html.php';
+require_once __DIR__ . '/templates/layout/footer.html.php';

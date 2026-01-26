@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config/database.php';
 
 class Post
 {
-    public function getPaginated($page = 1, $perPage = 10, $categorySlug = null, $tagSlug = null)
+    public function getPaginated($page = 1, $perPage = 10, $categorySlug = null, $tagSlug = null, $authorId = null)
     {
         $offset = max(0, ($page - 1) * $perPage);
 
@@ -34,6 +34,12 @@ class Post
             $types .= 's';
         }
 
+        if (!empty($authorId)) {
+            $sql .= ' AND p.author_id = ?';
+            $params[] = (int) $authorId;
+            $types .= 'i';
+        }
+
         $sql .= ' ORDER BY p.published_at DESC, p.id DESC LIMIT ? OFFSET ?';
         $params[] = (int) $perPage;
         $params[] = (int) $offset;
@@ -43,7 +49,7 @@ class Post
         return db_fetch_all($stmt);
     }
 
-    public function getTotal($categorySlug = null, $tagSlug = null)
+    public function getTotal($categorySlug = null, $tagSlug = null, $authorId = null)
     {
         $sql = "SELECT COUNT(DISTINCT p.id) AS total
                 FROM posts p
@@ -67,6 +73,12 @@ class Post
             )";
             $params[] = $tagSlug;
             $types .= 's';
+        }
+
+        if (!empty($authorId)) {
+            $sql .= ' AND p.author_id = ?';
+            $params[] = (int) $authorId;
+            $types .= 'i';
         }
 
         $stmt = db_query($sql, $types, $params);
