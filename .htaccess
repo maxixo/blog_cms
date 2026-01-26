@@ -3,8 +3,8 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    RewriteRule ^(config|includes)/ - [F]
-    RewriteRule ^uploads/posts/.*\.(php|phtml|php[0-9])$ - [F]
+    RewriteRule ^(config|includes|controllers|models|templates)/ - [F]
+    RewriteRule ^public/uploads/posts/.*\.(php|phtml|php[0-9])$ - [F]
 
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d

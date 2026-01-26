@@ -1,16 +1,15 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/config/config.php';
-require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/helpers.php';
+require_once __DIR__ . '/controllers/PostController.php';
 
-$seoTitle = 'Post - ' . SITE_NAME;
+$slug = get_query_value('slug');
 
-require_once __DIR__ . '/includes/header.php';
-?>
-<section class="container">
-    <h1>Post</h1>
-    <div class="card">
-        <p class="muted">Single post content and comments will render here.</p>
-    </div>
-</section>
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+$controller = new PostController();
+$data = $controller->show($slug);
+extract($data);
+
+require_once __DIR__ . '/templates/layout/header.html.php';
+require_once __DIR__ . '/templates/post/single.html.php';
+require_once __DIR__ . '/templates/layout/footer.html.php';

@@ -10,6 +10,6 @@ if (!defined('APP_STARTED')) {
         <p>&copy; <?= date('Y'); ?> <?= esc(SITE_NAME); ?>. All rights reserved.</p>
     </div>
 </footer>
-<script src="<?= esc(BASE_URL); ?>/assets/js/main.js"></script>
+<script src="<?= esc(ASSETS_URL); ?>/js/main.js"></script>
 </body>
 </html>

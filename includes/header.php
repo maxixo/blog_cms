@@ -29,7 +29,7 @@ $bodyClass = $bodyClass ?? '';
     <meta property="og:url" content="<?= esc($seoCanonical); ?>">
     <meta property="og:type" content="website">
 
-    <link rel="stylesheet" href="<?= esc(BASE_URL); ?>/assets/css/style.css">
+    <link rel="stylesheet" href="<?= esc(ASSETS_URL); ?>/css/style.css">
 </head>
 <body class="<?= esc($bodyClass); ?>">
 <header class="site-header">

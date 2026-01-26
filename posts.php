@@ -2,78 +2,7 @@
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/functions.php';
-
-// Helper function to safely get URL parameters
-function get_query_value($key)
-{
-    if (!isset($_GET[$key])) {
-        return '';
-    }
-
-    $value = $_GET[$key];
-    if (is_array($value)) {
-        $value = reset($value);
-    }
-
-    return trim((string) $value);
-}
-
-// Helper function to truncate long text
-function truncate_text($text, $limit = 160)
-{
-    $text = trim((string) $text);
-    if ($text === '') {
-        return '';
-    }
-
-    $length = function_exists('mb_strlen') ? mb_strlen($text) : strlen($text);
-    if ($length <= $limit) {
-        return $text;
-    }
-
-    $slice = function_exists('mb_substr') ? mb_substr($text, 0, $limit) : substr($text, 0, $limit);
-    $slice = rtrim($slice, " \t\n\r\0\x0B,.;:-");
-    return $slice . '...';
-}
-
-// Helper function to create post excerpt
-function make_excerpt($post, $limit = 160)
-{
-    $excerpt = trim((string) ($post['excerpt'] ?? ''));
-    if ($excerpt === '') {
-        $excerpt = trim(strip_tags((string) ($post['content'] ?? '')));
-    }
-
-    $excerpt = preg_replace('/\s+/', ' ', $excerpt);
-    return truncate_text($excerpt, $limit);
-}
-
-// Helper function to resolve image URL
-function resolve_image_url($path)
-{
-    $path = trim((string) $path);
-    if ($path === '') {
-        return DEFAULT_OG_IMAGE;
-    }
-
-    if (preg_match('#^https?://#i', $path)) {
-        return $path;
-    }
-
-    $path = ltrim($path, '/');
-    return BASE_URL . '/' . $path;
-}
-
-// Helper function to format post date
-function format_post_date($post)
-{
-    $value = $post['published_at'] ?? $post['created_at'] ?? '';
-    if ($value === '' || $value === null) {
-        return '';
-    }
-
-    return date('M j, Y', strtotime($value));
-}
+require_once __DIR__ . '/includes/helpers.php';
 
 // Get filter parameters from URL
 $categorySlug = get_query_value('category');

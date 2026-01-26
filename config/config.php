@@ -34,8 +34,9 @@ $basePath = $basePath === '/' ? '' : $basePath;
 
 define('BASE_URL', $protocol . '://' . $host . $basePath);
 
-define('UPLOADS_PATH', __DIR__ . '/../uploads');
-define('UPLOADS_URL', BASE_URL . '/uploads');
+define('ASSETS_URL', BASE_URL . '/public/assets');
+define('UPLOADS_PATH', __DIR__ . '/../public/uploads');
+define('UPLOADS_URL', BASE_URL . '/public/uploads');
 
 define('DEFAULT_AVATAR', UPLOADS_URL . '/avatars/default-avatar.png');
 define('DEFAULT_OG_IMAGE', UPLOADS_URL . '/avatars/default-avatar.png');
