@@ -13,7 +13,6 @@ class Category
                 GROUP BY c.id
                 ORDER BY c.name ASC";
 
-        $stmt = db_query($sql);
-        return db_fetch_all($stmt);
+        return db_fetch_all($sql);
     }
 }

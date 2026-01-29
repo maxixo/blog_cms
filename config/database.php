@@ -1,84 +1,99 @@
 ﻿<?php
-if (!defined('APP_STARTED')) {
-    http_response_code(403);
-    exit('Forbidden');
+// config/database.php
+
+// Database configuration
+if (!defined('DB_HOST')) {
+    define('DB_HOST', 'localhost');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+    define('DB_NAME', 'blog_cms');
 }
 
-function db()
-{
+// Get database connection
+function db_connect() {
     static $conn = null;
-    if ($conn instanceof mysqli) {
-        return $conn;
+    
+    if ($conn === null) {
+        $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+        
+        $conn->set_charset("utf8mb4");
     }
-
-    $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    if (!$conn) {
-        error_log('Database connection failed: ' . mysqli_connect_error());
-        http_response_code(500);
-        exit('Database connection error.');
-    }
-
-    mysqli_set_charset($conn, 'utf8mb4');
+    
     return $conn;
 }
 
-function db_fail($message)
-{
-    error_log($message);
-    http_response_code(500);
-    exit('Database query error.');
-}
-
-function db_bind_params($stmt, $types, $params)
-{
-    $bind = [];
-    $bind[] = $types;
-    foreach ($params as $key => $value) {
-        $bind[] = &$params[$key];
-    }
-
-    if (!call_user_func_array('mysqli_stmt_bind_param', $bind)) {
-        db_fail('Failed binding parameters: ' . mysqli_stmt_error($stmt));
-    }
-}
-
-function db_query($sql, $types = '', $params = [])
-{
-    $conn = db();
-    $stmt = mysqli_prepare($conn, $sql);
+// Execute query with prepared statements
+function db_query($sql, $types = '', $params = []) {
+    $conn = db_connect();
+    $stmt = $conn->prepare($sql);
+    
     if (!$stmt) {
-        db_fail('Prepare failed: ' . mysqli_error($conn));
+        die("Prepare failed: " . $conn->error . " | SQL: " . $sql);
     }
-
-    if ($types !== '' && !empty($params)) {
-        db_bind_params($stmt, $types, $params);
+    
+    // Bind parameters if provided
+    if (!empty($params) && !empty($types)) {
+        $stmt->bind_param($types, ...$params);
     }
-
-    if (!mysqli_stmt_execute($stmt)) {
-        db_fail('Execute failed: ' . mysqli_stmt_error($stmt));
+    
+    // Execute statement
+    if (!$stmt->execute()) {
+        die("Execute failed: " . $stmt->error);
     }
-
-    return $stmt;
+    
+    // Get result for SELECT queries
+    $result = $stmt->get_result();
+    
+    return $result;
 }
 
-function db_fetch_one($stmt)
-{
-    $result = mysqli_stmt_get_result($stmt);
-    return $result ? mysqli_fetch_assoc($result) : null;
+// Execute INSERT/UPDATE/DELETE queries
+function db_execute($sql, $types = '', $params = []) {
+    $conn = db_connect();
+    $stmt = $conn->prepare($sql);
+    
+    if (!$stmt) {
+        die("Prepare failed: " . $conn->error);
+    }
+    
+    if (!empty($params) && !empty($types)) {
+        $stmt->bind_param($types, ...$params);
+    }
+    
+    $stmt->execute();
+    
+    $result = [
+        'affected_rows' => $stmt->affected_rows,
+        'insert_id' => $stmt->insert_id
+    ];
+    
+    $stmt->close();
+    
+    return $result;
 }
 
-function db_fetch_all($stmt)
-{
-    $result = mysqli_stmt_get_result($stmt);
-    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+// Get single row
+function db_fetch($sql, $types = '', $params = []) {
+    $result = db_query($sql, $types, $params);
+    
+    if ($result && $result->num_rows > 0) {
+        return $result->fetch_assoc();
+    }
+    
+    return null;
 }
 
-function db_last_id()
-{
-    return mysqli_insert_id(db());
-}
-
-function db_affected_rows($stmt)
-{
-    return mysqli_stmt_affected_rows($stmt);
+// Get all rows
+function db_fetch_all($sql, $types = '', $params = []) {
+    $result = db_query($sql, $types, $params);
+    
+    if ($result) {
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+    
+    return [];
 }

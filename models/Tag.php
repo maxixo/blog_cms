@@ -16,7 +16,6 @@ class Tag
                 ORDER BY tag_count DESC, t.name ASC
                 LIMIT ?";
 
-        $stmt = db_query($sql, 'i', [$limit]);
-        return db_fetch_all($stmt);
+        return db_fetch_all($sql, 'i', [$limit]);
     }
 }
