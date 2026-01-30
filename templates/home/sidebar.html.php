@@ -32,8 +32,9 @@
                 }
                 $sizes = [1 => '0.85rem', 2 => '1rem', 3 => '1.15rem', 4 => '1.3rem'];
                 $size = $sizes[$weight] ?? '1rem';
+                $tagClass = 'tag tag-weight-' . $weight;
                 ?>
-                <a href="<?= esc(build_query_url(BASE_URL . '/index.php', ['tag' => $tag['slug']])); ?>" style="font-size: <?= esc($size); ?>;">
+                <a class="<?= esc($tagClass); ?>" href="<?= esc(build_query_url(BASE_URL . '/index.php', ['tag' => $tag['slug']])); ?>" style="font-size: <?= esc($size); ?>;">
                     <?= esc($tag['name']); ?>
                 </a>
             <?php endforeach; ?>

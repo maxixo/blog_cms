@@ -38,34 +38,36 @@
         <?php endforeach; ?>
 
         <?php if (!empty($totalPages) && $totalPages > 1): ?>
-            <nav class="pagination card">
+            <nav class="pagination card" aria-label="Pagination">
                 <?php if ($page > 1): ?>
                     <?php
                     $prevParams = $baseParams;
                     $prevParams['page'] = $page - 1;
                     ?>
-                    <a href="<?= esc(build_query_url(BASE_URL . '/posts.php', $prevParams)); ?>">Previous</a>
+                    <a class="page-link page-prev" href="<?= esc(build_query_url(BASE_URL . '/posts.php', $prevParams)); ?>">Previous</a>
                 <?php endif; ?>
 
-                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                    <?php
-                    $pageParams = $baseParams;
-                    $pageParams['page'] = $i;
-                    $pageUrl = build_query_url(BASE_URL . '/posts.php', $pageParams);
-                    ?>
-                    <?php if ($i === $page): ?>
-                        <strong><?= esc($i); ?></strong>
-                    <?php else: ?>
-                        <a href="<?= esc($pageUrl); ?>"><?= esc($i); ?></a>
-                    <?php endif; ?>
-                <?php endfor; ?>
+                <div class="page-numbers">
+                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                        <?php
+                        $pageParams = $baseParams;
+                        $pageParams['page'] = $i;
+                        $pageUrl = build_query_url(BASE_URL . '/posts.php', $pageParams);
+                        ?>
+                        <?php if ($i === $page): ?>
+                            <span class="page-link is-current" aria-current="page"><?= esc($i); ?></span>
+                        <?php else: ?>
+                            <a class="page-link" href="<?= esc($pageUrl); ?>"><?= esc($i); ?></a>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+                </div>
 
                 <?php if ($page < $totalPages): ?>
                     <?php
                     $nextParams = $baseParams;
                     $nextParams['page'] = $page + 1;
                     ?>
-                    <a href="<?= esc(build_query_url(BASE_URL . '/posts.php', $nextParams)); ?>">Next</a>
+                    <a class="page-link page-next" href="<?= esc(build_query_url(BASE_URL . '/posts.php', $nextParams)); ?>">Next</a>
                 <?php endif; ?>
             </nav>
         <?php endif; ?>
