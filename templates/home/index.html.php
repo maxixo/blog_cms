@@ -18,10 +18,22 @@
                 </p>
             <?php endif; ?>
 
-            <?php if (empty($posts)): ?>
-                <div class="card">
-                    <h2>No posts found</h2>
-                    <p class="muted">Try a different filter or check back soon.</p>
+            <?php if (!empty($isLoading)): ?>
+                <div class="card state-card state-loading" aria-live="polite">
+                    <div class="loading-line loading-line-lg"></div>
+                    <div class="loading-line loading-line-md"></div>
+                    <div class="loading-line loading-line-sm"></div>
+                </div>
+            <?php elseif (empty($posts)): ?>
+                <div class="card state-card state-empty">
+                    <h2>No posts yet</h2>
+                    <p class="muted">Once new posts are published, they will show up here.</p>
+                    <div class="state-actions">
+                        <?php if (!empty($categorySlug) || !empty($tagSlug)): ?>
+                            <a class="button-link" href="<?= esc(BASE_URL); ?>/index.php">Clear filters</a>
+                        <?php endif; ?>
+                        <a class="button-link" href="<?= esc(BASE_URL); ?>/posts.php">Browse all posts</a>
+                    </div>
                 </div>
             <?php else: ?>
                 <?php foreach ($posts as $post): ?>

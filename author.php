@@ -9,8 +9,9 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 <section class="container">
     <h1>Author</h1>
-    <div class="card">
-        <p class="muted">Author profile and posts will render here.</p>
+    <div class="card state-card state-empty">
+        <h2>No author selected</h2>
+        <p class="muted">Pick an author to see their profile and posts.</p>
     </div>
 </section>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

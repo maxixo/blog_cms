@@ -1,7 +1,9 @@
 <div class="card">
     <h2>Categories</h2>
     <?php if (empty($categories)): ?>
-        <p class="muted">No categories yet.</p>
+        <div class="state state-empty state-compact">
+            <p class="muted">No categories yet.</p>
+        </div>
     <?php else: ?>
         <ul>
             <?php foreach ($categories as $category): ?>
@@ -19,7 +21,9 @@
 <div class="card">
     <h2>Popular Tags</h2>
     <?php if (empty($tags)): ?>
-        <p class="muted">No tags yet.</p>
+        <div class="state state-empty state-compact">
+            <p class="muted">No tags yet.</p>
+        </div>
     <?php else: ?>
         <div class="tag-cloud">
             <?php foreach ($tags as $tag): ?>
@@ -45,7 +49,9 @@
 <div class="card">
     <h2>Recent Posts</h2>
     <?php if (empty($recentPosts)): ?>
-        <p class="muted">No recent posts yet.</p>
+        <div class="state state-empty state-compact">
+            <p class="muted">No recent posts yet.</p>
+        </div>
     <?php else: ?>
         <ul>
             <?php foreach ($recentPosts as $recent): ?>

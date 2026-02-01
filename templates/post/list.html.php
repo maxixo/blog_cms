@@ -19,13 +19,22 @@
         </p>
     <?php endif; ?>
 
-    <?php if (empty($posts)): ?>
-        <div class="card">
-            <h2>No posts found</h2>
-            <p class="muted">Try adjusting your filters or check back later for new content.</p>
-            <?php if (!empty($filtersActive)): ?>
-                <p><a href="<?= esc(BASE_URL); ?>/posts.php">View all posts</a></p>
-            <?php endif; ?>
+    <?php if (!empty($isLoading)): ?>
+        <div class="card state-card state-loading" aria-live="polite">
+            <div class="loading-line loading-line-lg"></div>
+            <div class="loading-line loading-line-md"></div>
+            <div class="loading-line loading-line-sm"></div>
+        </div>
+    <?php elseif (empty($posts)): ?>
+        <div class="card state-card state-empty">
+            <h2>No posts match this view</h2>
+            <p class="muted">Adjust your filters or return to the full archive.</p>
+            <div class="state-actions">
+                <?php if (!empty($filtersActive)): ?>
+                    <a class="button-link" href="<?= esc(BASE_URL); ?>/posts.php">View all posts</a>
+                <?php endif; ?>
+                <a class="button-link" href="<?= esc(BASE_URL); ?>/index.php">Back to home</a>
+            </div>
         </div>
     <?php else: ?>
         <p class="muted">
