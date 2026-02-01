@@ -4,15 +4,27 @@ require_once __DIR__ . '/../models/User.php';
 
 class AuthController
 {
-    public function showLoginForm($error = '')
+    public function showLoginForm($error = '', $success = '')
     {
         $pageHeading = 'Login';
         $pageTitle = $pageHeading . ' - ' . SITE_NAME;
 
+        // Get flash messages
+        $flash = getFlashMessage();
+        if ($flash) {
+            if ($flash['type'] === 'success') {
+                $success = $flash['message'];
+            } else {
+                $error = $flash['message'];
+            }
+        }
+
         return [
             'pageHeading' => $pageHeading,
             'pageTitle' => $pageTitle,
-            'error' => $error
+            'error' => $error,
+            'success' => $success,
+            'csrf_token' => generateCsrfToken()
         ];
     }
 
@@ -42,7 +54,64 @@ class AuthController
 
     public function login($postData)
     {
-        return $this->showLoginForm('Authentication is not configured yet.');
+        // Verify CSRF token silently
+        if (!isset($postData['csrf_token']) || !verifyCsrfToken($postData['csrf_token'])) {
+            // Silently handle CSRF failure - regenerate token and show form without error
+            return $this->showLoginForm();
+        }
+
+        // Get and sanitize input
+        $email = trim($postData['email'] ?? '');
+        $password = $postData['password'] ?? '';
+
+        // Validation
+        $errors = [];
+
+        // Validate email
+        if (empty($email)) {
+            $errors[] = 'Email is required.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Invalid email format.';
+        }
+
+        // Validate password
+        if (empty($password)) {
+            $errors[] = 'Password is required.';
+        }
+
+        // If there are validation errors, return them
+        if (!empty($errors)) {
+            setFlashMessage('error', implode(' ', $errors));
+            return $this->showLoginForm();
+        }
+
+        // Find user by email
+        $user = User::findByEmail($email);
+
+        // Check if user exists
+        if (!$user) {
+            setFlashMessage('error', 'Invalid email or password.');
+            return $this->showLoginForm();
+        }
+
+        // Verify password
+        if (!User::verifyPassword($password, $user['password_hash'])) {
+            setFlashMessage('error', 'Invalid email or password.');
+            return $this->showLoginForm();
+        }
+
+        // Create session for the user
+        session_start_safe();
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['email'] = $user['email'];
+        $_SESSION['role'] = $user['role'] ?? 'user';
+
+        // Success message and redirect
+        setFlashMessage('success', 'Welcome back, ' . esc($user['username']) . '!');
+        
+        // Redirect to home page
+        redirect(BASE_URL);
     }
 
     public function register($postData)
