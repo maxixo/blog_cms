@@ -95,3 +95,27 @@ function getFlashMessage()
     }
     return null;
 }
+
+// Get initials from username
+function getInitials($username)
+{
+    if (empty($username)) {
+        return '?';
+    }
+    
+    // Split username by spaces
+    $words = explode(' ', trim($username));
+    
+    // If only one word, take first 2 letters
+    if (count($words) === 1) {
+        return strtoupper(substr($username, 0, 2));
+    }
+    
+    // Take first letter of first two words
+    $initials = '';
+    foreach (array_slice($words, 0, 2) as $word) {
+        $initials .= strtoupper(substr($word, 0, 1));
+    }
+    
+    return $initials;
+}

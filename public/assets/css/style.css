@@ -223,6 +223,117 @@ p {
     color: var(--muted);
 }
 
+/* User Menu Styles */
+.user-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    position: relative;
+}
+
+.user-avatar::after {
+    content: '▼';
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    font-size: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.user-avatar:hover::after,
+.user-avatar.is-open::after {
+    opacity: 1;
+}
+
+.user-avatar.is-open {
+    background: var(--accent-strong);
+}
+
+.user-avatar:hover {
+    transform: scale(1.08);
+    box-shadow: var(--shadow-soft);
+    background: var(--accent-strong);
+}
+
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 200px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    z-index: 100;
+    overflow: hidden;
+}
+
+.user-dropdown.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.user-dropdown-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--accent-soft);
+}
+
+.user-dropdown-name {
+    font-weight: 600;
+    color: var(--accent-strong);
+    font-size: 0.95rem;
+}
+
+.user-dropdown-links {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-dropdown-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-weight: 500;
+    transition: background 0.2s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.user-dropdown-link:hover {
+    background: var(--bg);
+    color: var(--accent-strong);
+}
+
+.user-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
 .site-main {
     padding: 32px 0 64px;
 }
