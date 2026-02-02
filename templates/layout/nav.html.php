@@ -25,6 +25,7 @@
                         $currentUser = getCurrentUser();
                         $username = $currentUser['username'] ?? 'User';
                         $initials = getInitials($username);
+                        $isAdminPage = !empty($bodyClass) && strpos($bodyClass, 'admin-page') !== false;
                     ?>
                     <div class="user-menu">
                         <div class="user-avatar" title="<?= esc($username); ?>">
@@ -35,9 +36,39 @@
                                 <span class="user-dropdown-name"><?= esc($username); ?></span>
                             </div>
                             <div class="user-dropdown-links">
-                                <a href="<?= esc(BASE_URL); ?>/admin/profile.php" class="user-dropdown-link">
-                                    <i class="user-icon">👤</i> Profile
-                                </a>
+                                <?php if ($isAdminPage): ?>
+                                    <a href="<?= esc(BASE_URL); ?>/index.php" class="user-dropdown-link">
+                                        <i class="user-icon">🏠</i> View Site
+                                    </a>
+                                    <a href="<?= esc(BASE_URL); ?>/admin/index.php" class="user-dropdown-link">
+                                        <i class="user-icon">📊</i> Dashboard
+                                    </a>
+                                    <a href="<?= esc(BASE_URL); ?>/admin/posts.php" class="user-dropdown-link">
+                                        <i class="user-icon">📝</i> Posts
+                                    </a>
+                                    <a href="<?= esc(BASE_URL); ?>/admin/post-create.php" class="user-dropdown-link">
+                                        <i class="user-icon">➕</i> Add Post
+                                    </a>
+                                    <a href="<?= esc(BASE_URL); ?>/admin/categories.php" class="user-dropdown-link">
+                                        <i class="user-icon">📁</i> Categories
+                                    </a>
+                                    <a href="<?= esc(BASE_URL); ?>/admin/comments.php" class="user-dropdown-link">
+                                        <i class="user-icon">💬</i> Comments
+                                    </a>
+                                    <a href="<?= esc(BASE_URL); ?>/admin/users.php" class="user-dropdown-link">
+                                        <i class="user-icon">👥</i> Users
+                                    </a>
+                                    <a href="<?= esc(BASE_URL); ?>/admin/profile.php" class="user-dropdown-link">
+                                        <i class="user-icon">👤</i> Profile
+                                    </a>
+                                <?php else: ?>
+                                    <a href="<?= esc(BASE_URL); ?>/admin/index.php" class="user-dropdown-link">
+                                        <i class="user-icon">⚙️</i> Admin Panel
+                                    </a>
+                                    <a href="<?= esc(BASE_URL); ?>/admin/profile.php" class="user-dropdown-link">
+                                        <i class="user-icon">👤</i> Profile
+                                    </a>
+                                <?php endif; ?>
                                 <a href="<?= esc(BASE_URL); ?>/logout.php" class="user-dropdown-link">
                                     <i class="user-icon">🚪</i> Logout
                                 </a>

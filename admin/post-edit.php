@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $data = $controller->edit($postId);
 extract($data);
 
+$bodyClass = 'admin-page';
 require_once __DIR__ . '/../templates/layout/header.html.php';
 require_once __DIR__ . '/../templates/admin/post-form.html.php';
 require_once __DIR__ . '/../templates/layout/footer.html.php';

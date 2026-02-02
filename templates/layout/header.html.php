@@ -13,6 +13,9 @@
     <?php endif; ?>
 
     <link rel="stylesheet" href="<?= esc(ASSETS_URL); ?>/css/style.css">
+    <?php if (!empty($bodyClass) && strpos($bodyClass, 'admin-page') !== false): ?>
+        <link rel="stylesheet" href="<?= esc(ASSETS_URL); ?>/css/admin.css">
+    <?php endif; ?>
     <?php if (!empty($additionalCss)): ?>
         <?php foreach ($additionalCss as $css): ?>
             <link rel="stylesheet" href="<?= esc($css); ?>">
