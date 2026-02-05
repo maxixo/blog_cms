@@ -31,6 +31,7 @@
                     </div>
                 </div>
                 <a class="nav-link" href="<?= esc(BASE_URL); ?>/search.php">Search</a>
+                <a class="nav-link" href="<?= esc(BASE_URL); ?>/about.php">About</a>
             </div>
             <form class="nav-search" method="get" action="<?= esc(BASE_URL); ?>/search.php" role="search">
                 <label class="sr-only" for="nav-search-input">Search posts</label>
