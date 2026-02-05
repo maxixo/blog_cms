@@ -8,7 +8,7 @@
         <ul>
             <?php foreach ($categories as $category): ?>
                 <li>
-                    <a href="<?= esc(build_query_url(BASE_URL . '/index.php', ['category' => $category['slug']])); ?>">
+                    <a href="<?= esc(BASE_URL . '/category.php?slug=' . $category['slug']); ?>">
                         <?= esc($category['name']); ?>
                     </a>
                     <span class="muted">(<?= esc($category['post_count']); ?>)</span>

@@ -10,17 +10,20 @@ if (!isLoggedIn()) {
 }
 
 $controller = new CategoryManageController();
+$id = (int) ($_GET['id'] ?? 0);
 
-// Handle category deletion
-if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
-    $controller->delete((int) $_GET['id']);
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller->update($id);
     exit;
 }
 
-$data = $controller->index();
+// Get category data
+$data = $controller->edit($id);
 extract($data);
 
-$bodyClass = 'admin-page';
+$formAction = BASE_URL . '/admin/category-edit.php?id=' . $id;
+
 require_once __DIR__ . '/../templates/layout/header.html.php';
-require_once __DIR__ . '/../templates/admin/category-list.html.php';
+require_once __DIR__ . '/../templates/admin/category-form.html.php';
 require_once __DIR__ . '/../templates/layout/footer.html.php';

@@ -10,14 +10,31 @@
             <div class="nav-links">
                 <a class="nav-link" href="<?= esc(BASE_URL); ?>/index.php">Home</a>
                 <a class="nav-link" href="<?= esc(BASE_URL); ?>/posts.php">Posts</a>
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/category.php">Categories</a>
+                <div class="nav-dropdown">
+                    <a class="nav-link nav-dropdown-trigger" href="<?= esc(BASE_URL); ?>/category.php">
+                        Categories
+                        <span class="dropdown-arrow">▼</span>
+                    </a>
+                    <div class="dropdown-menu">
+                        <?php if (!empty($navCategories)): ?>
+                            <?php foreach ($navCategories as $category): ?>
+                                <a href="<?= esc(BASE_URL . '/category.php?slug=' . $category['slug']); ?>" class="dropdown-item">
+                                    <?= esc($category['name']); ?>
+                                    <span class="badge badge-secondary"><?= esc($category['post_count']); ?></span>
+                                </a>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="dropdown-item dropdown-empty">
+                                <span class="muted">No categories available</span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
                 <a class="nav-link" href="<?= esc(BASE_URL); ?>/search.php">Search</a>
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/about.php">About</a>
             </div>
             <form class="nav-search" method="get" action="<?= esc(BASE_URL); ?>/search.php" role="search">
                 <label class="sr-only" for="nav-search-input">Search posts</label>
-                <input id="nav-search-input" type="search" name="q" placeholder="Search posts" value="<?= esc($_GET['q'] ?? ''); ?>">
-                <button type="submit">Search</button>
+                <input id="nav-search-input" type="search" name="q" placeholder="Search" value="<?= esc($_GET['q'] ?? ''); ?>">
             </form>
             <div class="nav-auth">
                 <?php if (isLoggedIn()): ?>

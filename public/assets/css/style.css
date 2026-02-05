@@ -159,14 +159,14 @@ p {
 .nav-search {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
+    gap: 4px;
+    padding: 3px 6px;
     border-radius: 999px;
     border: 1px solid var(--border);
     background: #ffffff;
     box-shadow: inset 0 1px 2px rgba(21, 31, 41, 0.06);
-    flex: 1 1 240px;
-    max-width: 320px;
+    flex: 0 1 180px;
+    max-width: 200px;
 }
 
 .nav-search:focus-within {
@@ -181,10 +181,11 @@ p {
 .nav-search input {
     width: 100%;
     margin: 0;
-    padding: 6px 10px;
+    padding: 5px 8px;
     border: none;
     background: transparent;
-    min-width: 160px;
+    min-width: 120px;
+    font-size: 0.9rem;
 }
 
 .nav-search input:focus {
@@ -334,8 +335,124 @@ p {
     line-height: 1;
 }
 
+/* Category Dropdown Styles */
+.nav-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-arrow {
+    font-size: 0.7rem;
+    margin-left: 4px;
+    opacity: 0.7;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.nav-dropdown:hover .dropdown-arrow {
+    transform: rotate(180deg);
+    opacity: 1;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 280px;
+    max-width: 400px;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    z-index: 100;
+}
+
+.nav-dropdown:hover .dropdown-menu,
+.dropdown-menu.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-weight: 600;
+    transition: background 0.2s ease;
+    width: 100%;
+    border-bottom: 1px solid var(--border);
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background: var(--bg);
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.badge-secondary {
+    background: var(--accent);
+    color: #ffffff;
+}
+
+.dropdown-empty {
+    padding: 20px 16px;
+    text-align: center;
+    justify-content: center;
+}
+
 .site-main {
     padding: 32px 0 64px;
+}
+
+/* Category Header Styles */
+.category-header {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-soft);
+}
+
+.category-header h1 {
+    margin: 0 0 8px;
+}
+
+.category-header > .muted {
+    margin: 0 0 16px;
+    font-size: 1.05rem;
+}
+
+.category-stats {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: var(--accent-soft);
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
 .layout {
@@ -824,6 +941,33 @@ button.is-loading::after {
     }
 }
 
+@media (max-width: 900px) {
+    .site-nav {
+        flex-wrap: nowrap;
+        gap: 8px;
+    }
+    
+    .nav-links {
+        gap: 4px;
+    }
+    
+    .nav-link {
+        padding: 5px 10px;
+        font-size: 0.9rem;
+    }
+    
+    .nav-search {
+        flex: 0 1 150px;
+        max-width: 170px;
+    }
+    
+    .nav-search input {
+        min-width: 100px;
+        padding: 4px 6px;
+        font-size: 0.85rem;
+    }
+}
+
 @media (max-width: 960px) {
     .footer-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -842,6 +986,30 @@ button.is-loading::after {
 
     .nav-links {
         width: 100%;
+    }
+
+    /* Category dropdown mobile adjustments */
+    .dropdown-menu {
+        position: static;
+        min-width: 100%;
+        max-width: none;
+        max-height: none;
+        overflow-y: visible;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        border: none;
+        border-radius: 0;
+        display: none;
+    }
+
+    .dropdown-menu.is-open {
+        display: block;
+    }
+
+    .dropdown-item-group {
+        border-bottom: 1px solid var(--border);
     }
 
     .nav-search {

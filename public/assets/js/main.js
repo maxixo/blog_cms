@@ -87,4 +87,62 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
+
+    // Category Dropdown Menu Toggle (Mobile Touch Support)
+    var navDropdowns = document.querySelectorAll('.nav-dropdown');
+    navDropdowns.forEach(function (navDropdown) {
+        var trigger = navDropdown.querySelector('.nav-dropdown-trigger');
+        var dropdownMenu = navDropdown.querySelector('.dropdown-menu');
+        
+        if (trigger && dropdownMenu) {
+            var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            
+            // On touch devices, toggle dropdown on tap
+            if (isTouchDevice) {
+                trigger.addEventListener('click', function (e) {
+                    // Prevent default navigation if there are categories
+                    if (dropdownMenu.querySelector('.dropdown-item-group')) {
+                        e.preventDefault();
+                    }
+                    
+                    var isOpen = dropdownMenu.classList.contains('is-open');
+                    
+                    // Close all other dropdowns first
+                    navDropdowns.forEach(function (otherDropdown) {
+                        if (otherDropdown !== navDropdown) {
+                            var otherMenu = otherDropdown.querySelector('.dropdown-menu');
+                            if (otherMenu) {
+                                otherMenu.classList.remove('is-open');
+                            }
+                        }
+                    });
+                    
+                    if (isOpen) {
+                        dropdownMenu.classList.remove('is-open');
+                        trigger.setAttribute('aria-expanded', 'false');
+                    } else {
+                        dropdownMenu.classList.add('is-open');
+                        trigger.setAttribute('aria-expanded', 'true');
+                    }
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function (e) {
+                    if (!navDropdown.contains(e.target)) {
+                        dropdownMenu.classList.remove('is-open');
+                        trigger.setAttribute('aria-expanded', 'false');
+                    }
+                });
+                
+                // Close dropdown when clicking on a dropdown item
+                var dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+                dropdownItems.forEach(function (item) {
+                    item.addEventListener('click', function () {
+                        dropdownMenu.classList.remove('is-open');
+                        trigger.setAttribute('aria-expanded', 'false');
+                    });
+                });
+            }
+        }
+    });
 });

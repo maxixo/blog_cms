@@ -32,5 +32,30 @@
     <?php endif; ?>
 </head>
 <body class="<?= esc($bodyClass ?? ''); ?>">
+<?php
+// Fetch categories with post counts for navbar dropdown
+$navCategories = [];
+try {
+    $sql = "SELECT 
+                c.id, c.name, c.slug,
+                COUNT(p.id) as post_count
+            FROM categories c
+            LEFT JOIN posts p ON p.category_id = c.id 
+                AND p.status = 'published'
+                AND (p.published_at IS NULL OR p.published_at <= NOW())
+            WHERE c.id IN (
+                SELECT DISTINCT category_id FROM posts 
+                WHERE category_id IS NOT NULL AND status = 'published'
+            )
+            GROUP BY c.id, c.name, c.slug
+            ORDER BY c.name ASC";
+    
+    $navCategories = db_fetch_all($sql);
+} catch (Exception $e) {
+    // If there's any error, just leave it empty
+    $navCategories = [];
+}
+?>
 <?php require __DIR__ . '/nav.html.php'; ?>
 <main class="site-main">
+            $navCategories[$row['id']] = [
