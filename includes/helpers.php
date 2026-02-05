@@ -73,3 +73,21 @@ function format_post_date($post)
 
     return date('M j, Y', strtotime($value));
 }
+
+function create_slug($text)
+{
+    // Convert to lowercase
+    $slug = mb_strtolower($text, 'UTF-8');
+    
+    // Replace spaces and special characters with hyphens
+    $slug = preg_replace('/[^\p{L}\p{N}\s-]/u', '', $slug);
+    $slug = preg_replace('/[\s-]+/', '-', $slug);
+    
+    // Remove leading/trailing hyphens
+    $slug = trim($slug, '-');
+    
+    // Remove multiple consecutive hyphens
+    $slug = preg_replace('/-+/', '-', $slug);
+    
+    return $slug;
+}
