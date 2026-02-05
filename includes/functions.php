@@ -4,6 +4,8 @@ if (!defined('APP_STARTED')) {
     exit('Forbidden');
 }
 
+require_once __DIR__ . '/helpers.php';
+
 function esc($value)
 {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');

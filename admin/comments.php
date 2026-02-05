@@ -10,6 +10,13 @@ if (!isLoggedIn()) {
 }
 
 $controller = new CommentManageController();
+
+// Handle comment deletion
+if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
+    $controller->delete((int) $_GET['id']);
+    exit;
+}
+
 $data = $controller->index();
 extract($data);
 

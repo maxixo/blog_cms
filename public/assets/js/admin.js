@@ -52,13 +52,83 @@ function initDeleteConfirmation() {
 /**
  * Image upload with preview
  */
+function buildImagePlaceholderHtml() {
+    return `
+        <div class="image-upload-placeholder">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <p>Click to upload or drag and drop</p>
+            <small>JPG, PNG, GIF, WebP (max 5MB)</small>
+        </div>
+    `;
+}
+
+function buildImagePreviewHtml(imageUrl, inputId) {
+    const targetAttr = inputId ? ` data-target="${inputId}"` : '';
+    return `
+        <img src="${imageUrl}" alt="Image Preview">
+        <button type="button" class="btn-remove-image"${targetAttr}>
+            <span aria-hidden="true">&times;</span>
+        </button>
+    `;
+}
+
+function bindRemoveButton(previewContainer, input) {
+    const removeBtn = previewContainer?.querySelector('.btn-remove-image');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', function() {
+            removeImage(input, previewContainer);
+        });
+    }
+}
+
+function setImagePreview(previewContainer, input, html) {
+    if (!previewContainer) {
+        return;
+    }
+    previewContainer.innerHTML = html;
+    bindRemoveButton(previewContainer, input);
+}
+
 function initImageUpload() {
     const imageInputs = document.querySelectorAll('input[type="file"][accept*="image"]');
     
     imageInputs.forEach(function(input) {
+        const uploadArea = input.closest('.image-upload-area');
+        const previewContainer = uploadArea?.querySelector('.image-preview');
+        const existingUrl = uploadArea?.getAttribute('data-existing-url') || '';
+        if (previewContainer && existingUrl) {
+            previewContainer.dataset.existingUrl = existingUrl;
+        }
+        if (uploadArea) {
+            uploadArea.addEventListener('click', function(event) {
+                if (event.target === input) {
+                    return;
+                }
+                if (event.target.closest('.btn-remove-image')) {
+                    return;
+                }
+                if (event.target.closest('.image-upload-trigger')) {
+                    return;
+                }
+                if (input.disabled) {
+                    return;
+                }
+                input.click();
+            });
+        }
+
         input.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
+
+            const removeInput = uploadArea?.querySelector('input[name="remove_featured_image"]');
+            if (removeInput) {
+                removeInput.value = '0';
+            }
             
             // Validate file size (5MB)
             const maxSize = 5 * 1024 * 1024;
@@ -77,24 +147,10 @@ function initImageUpload() {
             }
             
             // Show preview
-            const previewContainer = input.parentElement.querySelector('.image-preview');
             if (previewContainer) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    previewContainer.innerHTML = `
-                        <img src="${event.target.result}" alt="Image Preview">
-                        <button type="button" class="btn-remove-image" data-target="${input.id}">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    `;
-                    
-                    // Bind remove button
-                    const removeBtn = previewContainer.querySelector('.btn-remove-image');
-                    if (removeBtn) {
-                        removeBtn.addEventListener('click', function() {
-                            removeImage(input, previewContainer);
-                        });
-                    }
+                    setImagePreview(previewContainer, input, buildImagePreviewHtml(event.target.result, input.id));
                 };
                 reader.readAsDataURL(file);
             }
@@ -123,20 +179,41 @@ function initImageUpload() {
 function removeImage(input, previewContainer) {
     const confirmed = confirm('Are you sure you want to remove this image?');
     
-    if (confirmed) {
-        input.value = '';
-        previewContainer.innerHTML = `
-            <div class="image-upload-placeholder">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <polyline points="21 15 16 10 5 21"/>
-                </svg>
-                <p>Click to upload or drag and drop</p>
-                <small>JPG, PNG, GIF, WebP (max 5MB)</small>
-            </div>
-        `;
+    if (!confirmed) {
+        return;
     }
+
+    const uploadArea = input.closest('.image-upload-area');
+    const removeInput = uploadArea?.querySelector('input[name="remove_featured_image"]');
+    const existingUrl = previewContainer?.dataset?.existingUrl ||
+        uploadArea?.getAttribute('data-existing-url') || '';
+    const hasNewFile = input.files && input.files.length > 0;
+
+    if (hasNewFile) {
+        input.value = '';
+        if (existingUrl) {
+            setImagePreview(previewContainer, input, buildImagePreviewHtml(existingUrl, input.id));
+        } else {
+            setImagePreview(previewContainer, input, buildImagePlaceholderHtml());
+        }
+        if (removeInput) {
+            removeInput.value = '0';
+        }
+        return;
+    }
+
+    if (removeInput && existingUrl) {
+        removeInput.value = '1';
+    }
+    if (previewContainer) {
+        previewContainer.dataset.existingUrl = '';
+    }
+    if (uploadArea && existingUrl) {
+        uploadArea.setAttribute('data-existing-url', '');
+    }
+
+    input.value = '';
+    setImagePreview(previewContainer, input, buildImagePlaceholderHtml());
 }
 
 /**

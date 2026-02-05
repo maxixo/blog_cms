@@ -46,8 +46,8 @@
                             <td>
                                 <div class="post-title-cell">
                                     <?php if (!empty($post['featured_image'])): ?>
-                                        <img src="<?= esc(BASE_URL . '/' . $post['featured_image']); ?>" 
-                                             alt="" class="post-thumbnail">
+                                        <?php $thumbnailUrl = resolve_image_url($post['featured_image']); ?>
+                                        <img src="<?= esc($thumbnailUrl); ?>" alt="" class="post-thumbnail">
                                     <?php endif; ?>
                                     <div>
                                         <strong><?= esc($post['title']); ?></strong>

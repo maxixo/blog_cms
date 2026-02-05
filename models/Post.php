@@ -59,6 +59,20 @@ class Post {
         return db_fetch($sql, 's', [$slug]);
     }
     
+    public function getById($id) {
+        $sql = "SELECT p.*, 
+                       u.username as author_name,
+                       u.avatar as author_avatar,
+                       c.name as category_name, 
+                       c.slug as category_slug
+                FROM posts p
+                LEFT JOIN users u ON p.author_id = u.id
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.id = ?";
+        
+        return db_fetch($sql, 'i', [$id]);
+    }
+    
     public function getTotal($category_slug = null, $tag_slug = null) {
         $sql = "SELECT COUNT(*) as total FROM posts p
                 LEFT JOIN categories c ON p.category_id = c.id

@@ -34,4 +34,33 @@
     </article>
 
     <?php require __DIR__ . '/comments.html.php'; ?>
+
+    <?php if (isLoggedIn()): ?>
+        <section class="card comment-form-section">
+            <h2>Leave a Comment</h2>
+            <form method="POST" action="<?= BASE_URL . '/comment-submit.php'; ?>" class="comment-form">
+                <input type="hidden" name="post_id" value="<?= esc($post['id'] ?? 0); ?>">
+                <input type="hidden" name="csrf_token" value="<?= esc(generate_csrf_token()); ?>">
+                
+                <div class="form-group">
+                    <label for="comment-content">Your Comment</label>
+                    <textarea 
+                        id="comment-content" 
+                        name="content" 
+                        rows="4" 
+                        required
+                        placeholder="Share your thoughts..."
+                    ></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Post Comment</button>
+            </form>
+        </section>
+    <?php else: ?>
+        <section class="card comment-form-section">
+            <p>
+                <a href="<?= BASE_URL . '/login.php'; ?>">Login</a> to leave a comment.
+            </p>
+        </section>
+    <?php endif; ?>
 </section>

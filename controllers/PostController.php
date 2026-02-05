@@ -1,15 +1,18 @@
 <?php
 require_once __DIR__ . '/../models/Post.php';
+require_once __DIR__ . '/../models/Comment.php';
 require_once __DIR__ . '/../includes/helpers.php';
 require_once __DIR__ . '/../includes/functions.php';
 
 class PostController
 {
     private $postModel;
+    private $commentModel;
 
     public function __construct()
     {
         $this->postModel = new Post();
+        $this->commentModel = new Comment();
     }
 
     public function show($slug)
@@ -34,7 +37,7 @@ class PostController
             ? $post['canonical_url']
             : build_query_url(BASE_URL . '/post.php', ['slug' => $post['slug'] ?? '']);
 
-        $comments = [];
+        $comments = $this->commentModel->getByPostId($post['id']);
         $reactionCounts = [];
 
         return compact(

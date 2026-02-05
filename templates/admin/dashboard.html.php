@@ -169,8 +169,8 @@
                     <?php foreach ($recentPosts as $post): ?>
                         <div class="recent-item">
                             <?php if (!empty($post['featured_image'])): ?>
-                                <img src="<?= esc(BASE_URL . '/' . $post['featured_image']); ?>" 
-                                     alt="" class="recent-thumbnail">
+                                <?php $thumbnailUrl = resolve_image_url($post['featured_image']); ?>
+                                <img src="<?= esc($thumbnailUrl); ?>" alt="" class="recent-thumbnail">
                             <?php else: ?>
                                 <div class="recent-thumbnail-placeholder">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -276,8 +276,8 @@
                                 <td>
                                     <div class="post-title-cell">
                                         <?php if (!empty($post['featured_image'])): ?>
-                                            <img src="<?= esc(BASE_URL . '/' . $post['featured_image']); ?>" 
-                                                 alt="" class="post-thumbnail">
+                                            <?php $thumbnailUrl = resolve_image_url($post['featured_image']); ?>
+                                            <img src="<?= esc($thumbnailUrl); ?>" alt="" class="post-thumbnail">
                                         <?php endif; ?>
                                         <strong><?= esc($post['title']); ?></strong>
                                     </div>

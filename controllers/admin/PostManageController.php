@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../includes/uploads.php';
 require_once __DIR__ . '/../../models/Post.php';
 require_once __DIR__ . '/../../models/Category.php';
 
@@ -92,7 +93,7 @@ class PostManageController
 
         // Handle image upload
         $featured_image = null;
-        if (isset($_FILES['featured_image']) && $_FILES['featured_image']['error'] === UPLOAD_ERR_OK) {
+        if (isset($_FILES['featured_image']) && $_FILES['featured_image']['error'] !== UPLOAD_ERR_NO_FILE) {
             $upload = $this->uploadImage($_FILES['featured_image']);
             if ($upload['success']) {
                 $featured_image = $upload['path'];
@@ -231,15 +232,12 @@ class PostManageController
 
         // Handle image upload
         $featured_image = $post['featured_image'];
-        if (isset($_FILES['featured_image']) && $_FILES['featured_image']['error'] === UPLOAD_ERR_OK) {
-            // Delete old image if exists
+        $removeFeaturedImage = isset($_POST['remove_featured_image']) && $_POST['remove_featured_image'] === '1';
+        if (isset($_FILES['featured_image']) && $_FILES['featured_image']['error'] !== UPLOAD_ERR_NO_FILE) {
             if ($featured_image) {
-                $oldImagePath = __DIR__ . '/../../public/' . $featured_image;
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
+                $this->deleteImageFile($featured_image);
             }
-            
+
             $upload = $this->uploadImage($_FILES['featured_image']);
             if ($upload['success']) {
                 $featured_image = $upload['path'];
@@ -248,6 +246,9 @@ class PostManageController
                 header('Location: ' . BASE_URL . '/admin/post-edit.php?id=' . $id);
                 exit;
             }
+        } elseif ($removeFeaturedImage && $featured_image) {
+            $this->deleteImageFile($featured_image);
+            $featured_image = null;
         }
 
         // Generate excerpt from content if not provided
@@ -306,10 +307,7 @@ class PostManageController
 
         // Delete featured image if exists
         if (!empty($post['featured_image'])) {
-            $imagePath = __DIR__ . '/../../public/' . $post['featured_image'];
-            if (file_exists($imagePath)) {
-                unlink($imagePath);
-            }
+            $this->deleteImageFile($post['featured_image']);
         }
 
         // Delete post
@@ -350,34 +348,33 @@ class PostManageController
 
     private function uploadImage($file)
     {
-        // Validate file
-        $allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-        $maxSize = 5 * 1024 * 1024; // 5MB
+        $upload = upload_image_file($file, [
+            'subdir' => 'posts',
+            'prefix' => 'featured_',
+            'max_size' => 5 * 1024 * 1024
+        ]);
 
-        if (!in_array($file['type'], $allowed)) {
-            return ['success' => false, 'error' => 'Invalid file type. Only JPG, PNG, GIF, and WebP are allowed.'];
+        if (!$upload['success']) {
+            return $upload;
         }
 
-        if ($file['size'] > $maxSize) {
-            return ['success' => false, 'error' => 'File size must be less than 5MB.'];
+        return ['success' => true, 'path' => $upload['path']];
+    }
+
+    private function deleteImageFile($path)
+    {
+        $path = ltrim((string) $path, '/');
+        if ($path === '') {
+            return;
         }
 
-        // Generate unique filename
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = uniqid('post_', true) . '.' . $extension;
-        $uploadDir = __DIR__ . '/../../public/uploads/posts/';
-        $uploadPath = $uploadDir . $filename;
-
-        // Create directory if not exists
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+        if (strpos($path, 'public/') === 0) {
+            $path = substr($path, strlen('public/'));
         }
 
-        // Move uploaded file
-        if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
-            return ['success' => true, 'path' => 'uploads/posts/' . $filename];
-        } else {
-            return ['success' => false, 'error' => 'Failed to upload file. Please try again.'];
+        $fullPath = __DIR__ . '/../../public/' . $path;
+        if (file_exists($fullPath)) {
+            unlink($fullPath);
         }
     }
 }

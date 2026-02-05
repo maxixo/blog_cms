@@ -16,6 +16,11 @@
         </div>
     <?php endif; ?>
 
+    <?php
+    $existingImagePath = $post['featured_image'] ?? '';
+    $existingImageUrl = $existingImagePath ? resolve_image_url($existingImagePath) : '';
+    ?>
+
     <form method="POST" action="" enctype="multipart/form-data" class="post-form" id="postForm">
         <input type="hidden" name="csrf_token" value="<?= generate_csrf_token(); ?>">
         
@@ -51,7 +56,7 @@
 
         <div class="form-group">
             <label for="featured_image">Featured Image</label>
-            <div class="image-upload-area" id="imageUploadArea">
+            <div class="image-upload-area" id="imageUploadArea" data-existing-url="<?= esc($existingImageUrl); ?>">
                 <input 
                     type="file" 
                     name="featured_image" 
@@ -59,10 +64,11 @@
                     accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     class="form-control-file"
                 >
+                <input type="hidden" name="remove_featured_image" id="remove_featured_image" value="0">
                 <div class="image-preview" id="imagePreview">
-                    <?php if (isset($post['featured_image']) && $post['featured_image']): ?>
-                        <img src="<?= esc(BASE_URL . '/' . $post['featured_image']); ?>" alt="Featured Image">
-                        <button type="button" class="btn-remove-image" id="removeImage">
+                    <?php if ($existingImageUrl): ?>
+                        <img src="<?= esc($existingImageUrl); ?>" alt="Featured Image">
+                        <button type="button" class="btn-remove-image" id="removeImage" data-target="featured_image">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     <?php else: ?>
@@ -77,6 +83,7 @@
                         </div>
                     <?php endif; ?>
                 </div>
+                <label class="image-upload-trigger" for="featured_image" aria-label="Upload featured image"></label>
             </div>
         </div>
 
@@ -194,6 +201,9 @@
 // TinyMCE Editor Initialization
 (function() {
     var contentTextarea = document.getElementById('content');
+    var csrfTokenInput = document.querySelector('input[name="csrf_token"]');
+    var csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
+    var uploadUrl = <?= json_encode(BASE_URL . '/admin/image-upload.php'); ?>;
     
     // Initialize TinyMCE when script is loaded
     function initTinyMCE() {
@@ -222,7 +232,44 @@
                     branding: false,
                     statusbar: true,
                     elementpath: true,
-                    wordcount: true
+                    wordcount: true,
+                    images_upload_handler: function(blobInfo) {
+                        return new Promise(function(resolve, reject) {
+                            if (!uploadUrl) {
+                                reject('Image upload URL is not configured.');
+                                return;
+                            }
+
+                            var formData = new FormData();
+                            formData.append('file', blobInfo.blob(), blobInfo.filename());
+                            if (csrfToken) {
+                                formData.append('csrf_token', csrfToken);
+                            }
+
+                            fetch(uploadUrl, {
+                                method: 'POST',
+                                body: formData,
+                                credentials: 'same-origin'
+                            })
+                                .then(function(response) {
+                                    if (!response.ok) {
+                                        return response.json().then(function(data) {
+                                            throw new Error(data.error || 'Image upload failed.');
+                                        });
+                                    }
+                                    return response.json();
+                                })
+                                .then(function(data) {
+                                    if (!data || typeof data.location !== 'string') {
+                                        throw new Error('Invalid upload response.');
+                                    }
+                                    resolve(data.location);
+                                })
+                                .catch(function(error) {
+                                    reject(error.message || 'Image upload failed.');
+                                });
+                        });
+                    }
                 });
                 console.log('TinyMCE initialized successfully');
             } catch (error) {
@@ -252,104 +299,13 @@
         }, 100);
     }
 
-    // Character counter for excerpt
-    const excerptTextarea = document.getElementById('excerpt');
-    if (excerptTextarea) {
-        excerptTextarea.addEventListener('input', function() {
-            const length = this.value.length;
-            const counter = this.parentElement.querySelector('.form-text');
-            if (counter) {
-                counter.textContent = length + '/500 characters';
-            }
-        });
-    }
-
-    // Character counter for meta description
-    const metaDescTextarea = document.getElementById('meta_description');
-    if (metaDescTextarea) {
-        metaDescTextarea.addEventListener('input', function() {
-            const length = this.value.length;
-            const counter = this.parentElement.querySelector('.form-text');
-            if (counter) {
-                counter.textContent = length + '/160 characters';
-            }
-        });
-    }
-
-    // Image upload preview
-    const imageInput = document.getElementById('featured_image');
-    const imagePreview = document.getElementById('imagePreview');
-    const removeImageButton = document.getElementById('removeImage');
-
-    if (imageInput && imagePreview) {
-        imageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                // Validate file size (5MB)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('File size must be less than 5MB.');
-                    imageInput.value = '';
-                    return;
-                }
-
-                // Show preview
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    imagePreview.innerHTML = `
-                        <img src="${e.target.result}" alt="Featured Image Preview">
-                        <button type="button" class="btn-remove-image" id="removeImage">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    `;
-                    
-                    // Re-bind remove button
-                    const newRemoveButton = document.getElementById('removeImage');
-                    if (newRemoveButton) {
-                        newRemoveButton.addEventListener('click', removeImage);
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-
-    function removeImage(e) {
-        e.preventDefault();
-        if (confirm('Are you sure you want to remove the featured image?')) {
-            const imageInput = document.getElementById('featured_image');
-            const imagePreview = document.getElementById('imagePreview');
-            
-            if (imageInput) {
-                imageInput.value = '';
-            }
-            
-            if (imagePreview) {
-                imagePreview.innerHTML = `
-                    <div class="image-upload-placeholder">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                            <circle cx="8.5" cy="8.5" r="1.5"/>
-                            <polyline points="21 15 16 10 5 21"/>
-                        </svg>
-                        <p>Click to upload or drag and drop</p>
-                        <small>JPG, PNG, GIF, WebP (max 5MB)</small>
-                    </div>
-                `;
-            }
-        }
-    }
-
-    // Bind existing remove button
-    if (removeImageButton) {
-        removeImageButton.addEventListener('click', removeImage);
-    }
-
     // Form validation
     const postForm = document.getElementById('postForm');
     if (postForm) {
         postForm.addEventListener('submit', function(e) {
             const title = document.getElementById('title').value.trim();
-            const content = tinymce.get('content')?.getContent() || document.getElementById('content').value;
+            const editor = typeof tinymce !== 'undefined' ? tinymce.get('content') : null;
+            const content = editor ? editor.getContent() : document.getElementById('content').value;
             
             if (!title) {
                 e.preventDefault();
