@@ -45,8 +45,6 @@ $bodyClass = $bodyClass ?? '';
                 <a class="nav-link" href="<?= esc(BASE_URL); ?>/index.php">Home</a>
                 <a class="nav-link" href="<?= esc(BASE_URL); ?>/posts.php">Posts</a>
                 <a class="nav-link" href="<?= esc(BASE_URL); ?>/category.php">Categories</a>
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/search.php">Search</a>
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/about.php">About</a>
             </div>
             <form class="nav-search" method="get" action="<?= esc(BASE_URL); ?>/search.php" role="search">
                 <label class="sr-only" for="nav-search-input">Search posts</label>

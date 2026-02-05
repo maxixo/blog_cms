@@ -58,4 +58,3 @@ try {
 ?>
 <?php require __DIR__ . '/nav.html.php'; ?>
 <main class="site-main">
-            $navCategories[$row['id']] = [
