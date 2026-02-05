@@ -38,7 +38,7 @@ class PostManageController
         $additionalCss = [ASSETS_URL . '/css/admin.css'];
         $additionalJs = [
             ASSETS_URL . '/js/admin.js',
-            'https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js'
+            TINYMCE_SCRIPT_URL
         ];
 
         // Get categories
@@ -67,7 +67,7 @@ class PostManageController
     {
         if (!isset($_POST['csrf_token']) || !verify_csrf_token($_POST['csrf_token'])) {
             $_SESSION['error_message'] = 'Invalid request. Please try again.';
-            header('Location: /admin/posts.php');
+            header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
         }
 
@@ -86,7 +86,7 @@ class PostManageController
             $_SESSION['form_errors'] = $errors;
             $_SESSION['form_data'] = $_POST;
             $_SESSION['error_message'] = 'Please fix the errors below.';
-            header('Location: /admin/post-create.php');
+            header('Location: ' . BASE_URL . '/admin/post-create.php');
             exit;
         }
 
@@ -98,7 +98,7 @@ class PostManageController
                 $featured_image = $upload['path'];
             } else {
                 $_SESSION['error_message'] = $upload['error'];
-                header('Location: /admin/post-create.php');
+                header('Location: ' . BASE_URL . '/admin/post-create.php');
                 exit;
             }
         }
@@ -127,11 +127,11 @@ class PostManageController
         if ($postId) {
             $_SESSION['success_message'] = 'Post ' . 
                 (($_POST['status'] ?? 'draft') === 'published' ? 'published' : 'saved as draft') . ' successfully!';
-            header('Location: /admin/posts.php');
+            header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
         } else {
             $_SESSION['error_message'] = 'Failed to create post. Please try again.';
-            header('Location: /admin/post-create.php');
+            header('Location: ' . BASE_URL . '/admin/post-create.php');
             exit;
         }
     }
@@ -143,14 +143,14 @@ class PostManageController
 
         if (!$post) {
             $_SESSION['error_message'] = 'Post not found.';
-            header('Location: /admin/posts.php');
+            header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
         }
 
         // Check if user owns the post or is admin
         if ($post['author_id'] != $_SESSION['user_id'] && $_SESSION['user_role'] !== 'admin') {
             $_SESSION['error_message'] = 'You do not have permission to edit this post.';
-            header('Location: /admin/posts.php');
+            header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
         }
 
@@ -161,7 +161,7 @@ class PostManageController
         $additionalCss = [ASSETS_URL . '/css/admin.css'];
         $additionalJs = [
             ASSETS_URL . '/js/admin.js',
-            'https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js'
+            TINYMCE_SCRIPT_URL
         ];
 
         // Get categories
@@ -191,7 +191,7 @@ class PostManageController
     {
         if (!isset($_POST['csrf_token']) || !verify_csrf_token($_POST['csrf_token'])) {
             $_SESSION['error_message'] = 'Invalid request. Please try again.';
-            header('Location: /admin/posts.php');
+            header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
         }
 
@@ -200,14 +200,14 @@ class PostManageController
 
         if (!$post) {
             $_SESSION['error_message'] = 'Post not found.';
-            header('Location: /admin/posts.php');
+            header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
         }
 
         // Check permissions
         if ($post['author_id'] != $_SESSION['user_id'] && $_SESSION['user_role'] !== 'admin') {
             $_SESSION['error_message'] = 'You do not have permission to edit this post.';
-            header('Location: /admin/posts.php');
+            header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
         }
 
@@ -225,7 +225,7 @@ class PostManageController
             $_SESSION['form_errors'] = $errors;
             $_SESSION['form_data'] = $_POST;
             $_SESSION['error_message'] = 'Please fix the errors below.';
-            header('Location: /admin/post-edit.php?id=' . $id);
+            header('Location: ' . BASE_URL . '/admin/post-edit.php?id=' . $id);
             exit;
         }
 
@@ -245,7 +245,7 @@ class PostManageController
                 $featured_image = $upload['path'];
             } else {
                 $_SESSION['error_message'] = $upload['error'];
-                header('Location: /admin/post-edit.php?id=' . $id);
+                header('Location: ' . BASE_URL . '/admin/post-edit.php?id=' . $id);
                 exit;
             }
         }
@@ -271,11 +271,11 @@ class PostManageController
 
         if ($result) {
             $_SESSION['success_message'] = 'Post updated successfully!';
-            header('Location: /admin/posts.php');
+            header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
         } else {
             $_SESSION['error_message'] = 'Failed to update post. Please try again.';
-            header('Location: /admin/post-edit.php?id=' . $id);
+            header('Location: ' . BASE_URL . '/admin/post-edit.php?id=' . $id);
             exit;
         }
     }
@@ -284,7 +284,7 @@ class PostManageController
     {
         if (!isset($_POST['csrf_token']) || !verify_csrf_token($_POST['csrf_token'])) {
             $_SESSION['error_message'] = 'Invalid request. Please try again.';
-            header('Location: /admin/posts.php');
+            header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
         }
 
@@ -293,14 +293,14 @@ class PostManageController
 
         if (!$post) {
             $_SESSION['error_message'] = 'Post not found.';
-            header('Location: /admin/posts.php');
+            header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
         }
 
         // Check permissions
         if ($post['author_id'] != $_SESSION['user_id'] && $_SESSION['user_role'] !== 'admin') {
             $_SESSION['error_message'] = 'You do not have permission to delete this post.';
-            header('Location: /admin/posts.php');
+            header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
         }
 
@@ -321,7 +321,7 @@ class PostManageController
             $_SESSION['error_message'] = 'Failed to delete post. Please try again.';
         }
 
-        header('Location: /admin/posts.php');
+        header('Location: ' . BASE_URL . '/admin/posts.php');
         exit;
     }
 

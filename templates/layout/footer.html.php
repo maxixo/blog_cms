@@ -40,7 +40,10 @@
     <script src="<?= esc(ASSETS_URL); ?>/js/main.js"></script>
     <?php if (!empty($additionalJs)): ?>
         <?php foreach ($additionalJs as $js): ?>
-            <script src="<?= esc($js); ?>"></script>
+            <?php // Skip TinyMCE as it's loaded in header ?>
+            <?php if (strpos($js, 'tinymce') === false): ?>
+                <script src="<?= esc($js); ?>"></script>
+            <?php endif; ?>
         <?php endforeach; ?>
     <?php endif; ?>
 </body>

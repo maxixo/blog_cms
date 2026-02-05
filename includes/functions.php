@@ -75,6 +75,17 @@ function verifyCsrfToken($token)
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
 
+// Snake_case aliases for compatibility
+function generate_csrf_token()
+{
+    return generateCsrfToken();
+}
+
+function verify_csrf_token($token)
+{
+    return verifyCsrfToken($token);
+}
+
 // Flash messages
 function setFlashMessage($type, $message)
 {

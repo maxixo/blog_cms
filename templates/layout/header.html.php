@@ -21,6 +21,15 @@
             <link rel="stylesheet" href="<?= esc($css); ?>">
         <?php endforeach; ?>
     <?php endif; ?>
+    
+    <?php // Load TinyMCE in HEAD for admin pages ?>
+    <?php if (!empty($additionalJs)): ?>
+        <?php foreach ($additionalJs as $js): ?>
+            <?php if (strpos($js, 'tinymce') !== false): ?>
+                <script src="<?= esc($js); ?>"></script>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    <?php endif; ?>
 </head>
 <body class="<?= esc($bodyClass ?? ''); ?>">
 <?php require __DIR__ . '/nav.html.php'; ?>

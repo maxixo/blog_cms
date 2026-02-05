@@ -2,7 +2,7 @@
     <div class="admin-header">
         <h1><?= esc($pageHeading ?? 'Post'); ?></h1>
         <p><?= esc($pageDescription ?? ''); ?></p>
-        <a href="/admin/posts.php" class="btn btn-secondary">← Back to Posts</a>
+        <a href="/blog_cms/admin/posts.php" class="btn btn-secondary">← Back to Posts</a>
     </div>
 
     <?php if (!empty($errors)): ?>
@@ -177,7 +177,7 @@
             </button>
 
             <?php if (isset($post['id']) && $post['status'] === 'published'): ?>
-                <a href="/post.php?slug=<?= esc($post['slug']); ?>" target="_blank" class="btn btn-outline">
+                <a href="/blog_cms/post.php?slug=<?= esc($post['slug']); ?>" target="_blank" class="btn btn-outline">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                         <polyline points="15 3 21 3 21 9"/>
@@ -191,39 +191,65 @@
 </section>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize TinyMCE
-    if (typeof tinymce !== 'undefined') {
-        tinymce.init({
-            selector: '.tinymce-editor',
-            height: 400,
-            plugins: [
-                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'help', 'wordcount'
-            ],
-            toolbar: 'undo redo | blocks | ' +
-                'bold italic underline strikethrough | alignleft aligncenter ' +
-                'alignright alignjustify | bullist numlist outdent indent | ' +
-                'removeformat | link image | code preview fullscreen | help',
-            menubar: 'file edit view insert format tools table help',
-            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; }',
-            image_caption: true,
-            image_title: true,
-            automatic_uploads: true,
-            file_picker_types: 'image',
-            promotion: false,
-            resize: true,
-            branding: false,
-            statusbar: true,
-            elementpath: true,
-            wordcount: true,
-            setup: function(editor) {
-                editor.on('init', function() {
-                    // Set initial content if needed
+// TinyMCE Editor Initialization
+(function() {
+    var contentTextarea = document.getElementById('content');
+    
+    // Initialize TinyMCE when script is loaded
+    function initTinyMCE() {
+        if (typeof tinymce !== 'undefined' && contentTextarea) {
+            try {
+                tinymce.init({
+                    selector: '.tinymce-editor',
+                    height: 400,
+                    plugins: [
+                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                        'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                    ],
+                    toolbar: 'undo redo | blocks | ' +
+                        'bold italic underline strikethrough | alignleft aligncenter ' +
+                        'alignright alignjustify | bullist numlist outdent indent | ' +
+                        'removeformat | link image | code preview fullscreen | help',
+                    menubar: 'file edit view insert format tools table help',
+                    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; }',
+                    image_caption: true,
+                    image_title: true,
+                    automatic_uploads: true,
+                    file_picker_types: 'image',
+                    promotion: false,
+                    resize: true,
+                    branding: false,
+                    statusbar: true,
+                    elementpath: true,
+                    wordcount: true
                 });
+                console.log('TinyMCE initialized successfully');
+            } catch (error) {
+                console.error('TinyMCE initialization error:', error);
             }
-        });
+        } else {
+            console.warn('TinyMCE not loaded or textarea not found');
+        }
+    }
+    
+    // Try to initialize immediately
+    if (typeof tinymce !== 'undefined') {
+        initTinyMCE();
+    } else {
+        // If not loaded yet, wait for it
+        var checkCount = 0;
+        var maxChecks = 50; // Check for 5 seconds
+        var checkInterval = setInterval(function() {
+            checkCount++;
+            if (typeof tinymce !== 'undefined') {
+                clearInterval(checkInterval);
+                initTinyMCE();
+            } else if (checkCount >= maxChecks) {
+                clearInterval(checkInterval);
+                console.error('TinyMCE failed to load after 5 seconds');
+            }
+        }, 100);
     }
 
     // Character counter for excerpt

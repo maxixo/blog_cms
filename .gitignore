@@ -1,2 +1,7 @@
 # Ignore markdown documentation files
 *.md
+
+# Environment variables
+.env
+.env.local
+.env.production

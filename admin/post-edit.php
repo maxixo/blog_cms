@@ -4,8 +4,8 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../controllers/admin/PostManageController.php';
 
 // Check if user is logged in
-if (!is_logged_in()) {
-    header('Location: /login.php');
+if (!isLoggedIn()) {
+    header('Location: ' . BASE_URL . '/login.php');
     exit;
 }
 
@@ -14,7 +14,7 @@ $postId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if (!$postId) {
     $_SESSION['error_message'] = 'Invalid post ID.';
-    header('Location: /admin/posts.php');
+    header('Location: ' . BASE_URL . '/admin/posts.php');
     exit;
 }
 
