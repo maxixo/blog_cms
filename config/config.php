@@ -58,6 +58,11 @@ define('RSS_INCLUDE_IMAGES', true);
 define('POSTS_PER_PAGE', 6);
 define('COMMENTS_PER_PAGE', 10);
 
+// Search Settings
+define('MIN_SEARCH_LENGTH', 2); // Minimum characters for search
+define('SEARCH_MAX_RESULTS', 100); // Maximum results to return
+define('SEARCH_CACHE_DURATION', 300); // Cache duration in seconds (5 min)
+
 define('ENABLE_REGISTRATION', true);
 
 // TinyMCE Configuration - using free jsDelivr CDN (no API key required)

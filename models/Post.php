@@ -44,6 +44,66 @@ class Post {
         // CORRECT ORDER: sql, types, params
         return db_fetch_all($sql, $types, $params);
     }
+
+    public function search($query, $page = 1, $limit = 10, $category_slug = null) {
+        $page = (int) $page;
+        $limit = (int) $limit;
+
+        if ($page < 1) {
+            $page = 1;
+        }
+
+        if ($limit < 1) {
+            $limit = 10;
+        }
+
+        $searchTerm = trim((string) $query);
+        if ($searchTerm === '') {
+            return [];
+        }
+
+        $offset = ($page - 1) * $limit;
+
+        $sql = "SELECT p.id, p.title, p.slug, p.excerpt, p.featured_image,
+                       p.published_at, p.views, p.status, p.author_id,
+                       u.username as author_name,
+                       c.name as category_name, c.slug as category_slug
+                FROM posts p
+                LEFT JOIN users u ON p.author_id = u.id
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.status = 'published'
+                  AND (
+                      p.title LIKE ?
+                      OR p.content LIKE ?
+                      OR u.username LIKE ?
+                      OR c.name LIKE ?
+                      OR c.slug LIKE ?
+                  )";
+
+        $params = [];
+        $types = '';
+
+        $searchPattern = '%' . $searchTerm . '%';
+        $params[] = $searchPattern;
+        $params[] = $searchPattern;
+        $params[] = $searchPattern;
+        $params[] = $searchPattern;
+        $params[] = $searchPattern;
+        $types .= 'sssss';
+
+        if ($category_slug) {
+            $sql .= " AND c.slug = ?";
+            $params[] = $category_slug;
+            $types .= 's';
+        }
+
+        $sql .= " ORDER BY p.published_at DESC LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+        $types .= 'ii';
+
+        return db_fetch_all($sql, $types, $params);
+    }
     
     public function getBySlug($slug) {
         $sql = "SELECT p.*, 
@@ -97,6 +157,45 @@ class Post {
             $types .= 's';
         }
         
+        $result = db_fetch($sql, $types, $params);
+        return $result ? $result['total'] : 0;
+    }
+
+    public function getSearchTotal($query, $category_slug = null) {
+        $searchTerm = trim((string) $query);
+        if ($searchTerm === '') {
+            return 0;
+        }
+
+        $sql = "SELECT COUNT(*) as total FROM posts p
+                LEFT JOIN users u ON p.author_id = u.id
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.status = 'published'
+                  AND (
+                      p.title LIKE ?
+                      OR p.content LIKE ?
+                      OR u.username LIKE ?
+                      OR c.name LIKE ?
+                      OR c.slug LIKE ?
+                  )";
+
+        $params = [];
+        $types = '';
+
+        $searchPattern = '%' . $searchTerm . '%';
+        $params[] = $searchPattern;
+        $params[] = $searchPattern;
+        $params[] = $searchPattern;
+        $params[] = $searchPattern;
+        $params[] = $searchPattern;
+        $types .= 'sssss';
+
+        if ($category_slug) {
+            $sql .= " AND c.slug = ?";
+            $params[] = $category_slug;
+            $types .= 's';
+        }
+
         $result = db_fetch($sql, $types, $params);
         return $result ? $result['total'] : 0;
     }

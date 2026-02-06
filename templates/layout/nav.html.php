@@ -35,7 +35,15 @@
             </div>
             <form class="nav-search" method="get" action="<?= esc(BASE_URL); ?>/search.php" role="search">
                 <label class="sr-only" for="nav-search-input">Search posts</label>
-                <input id="nav-search-input" type="search" name="q" placeholder="Search" value="<?= esc($_GET['q'] ?? ''); ?>">
+                <input
+                    id="nav-search-input"
+                    type="search"
+                    name="q"
+                    placeholder="Search posts..."
+                    aria-label="Search posts"
+                    value="<?= esc($_GET['q'] ?? ''); ?>"
+                >
+                <button type="submit" aria-label="Submit search">Search</button>
             </form>
             <div class="nav-auth">
                 <?php if (isLoggedIn()): ?>

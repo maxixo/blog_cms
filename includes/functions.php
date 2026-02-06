@@ -61,6 +61,34 @@ function getCurrentUser()
     return null;
 }
 
+function addSearchToHistory($query)
+{
+    $query = trim((string) $query);
+    if ($query === '') {
+        return;
+    }
+
+    session_start_safe();
+    if (!isset($_SESSION['search_history']) || !is_array($_SESSION['search_history'])) {
+        $_SESSION['search_history'] = [];
+    }
+
+    $history = $_SESSION['search_history'];
+    $history = array_values(array_diff($history, [$query]));
+    array_unshift($history, $query);
+    $_SESSION['search_history'] = array_slice($history, 0, 10);
+}
+
+function getSearchHistory()
+{
+    session_start_safe();
+    if (empty($_SESSION['search_history']) || !is_array($_SESSION['search_history'])) {
+        return [];
+    }
+
+    return array_values($_SESSION['search_history']);
+}
+
 // CSRF Protection
 function generateCsrfToken()
 {
