@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 if (!defined('APP_STARTED')) {
     define('APP_STARTED', true);
 }
@@ -48,6 +48,12 @@ define('SITE_NAME', 'Blog CMS');
 define('SITE_TAGLINE', 'Publishing with clarity.');
 define('SITE_DESCRIPTION', 'A full-featured blog and content management system.');
 define('SITE_EMAIL', 'admin@example.com');
+
+// RSS Feed Settings
+define('RSS_FEED_LIMIT', 20);
+define('RSS_CACHE_DURATION', 1800);
+define('RSS_DESCRIPTION_LENGTH', 300);
+define('RSS_INCLUDE_IMAGES', true);
 
 define('POSTS_PER_PAGE', 6);
 define('COMMENTS_PER_PAGE', 10);

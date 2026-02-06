@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0">
+<channel>
+    <title>Blog CMS</title>
+    <link>http://localhost/blog_cms</link>
+    <description>A full-featured blog and content management system.</description>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 05 Feb 2026 13:39:24 GMT</lastBuildDate>
+        <item>
+        <title>svasjdvv</title>
+        <link>http://localhost/blog_cms/post.php?slug=svasjdvv</link>
+        <description><![CDATA[ssdvksdvjksdvjnkznk]]></description>
+        <pubDate>Thu, 05 Feb 2026 13:39:24 GMT</pubDate>
+        <guid isPermaLink="true">http://localhost/blog_cms/post.php?slug=svasjdvv</guid>
+                <category>Technology</category>
+                        <author>oshodiusman@yahoo.com (Usman Oshodi)</author>
+                        <comments>http://localhost/blog_cms/post.php?slug=svasjdvv#comments</comments>
+    </item>
+</channel>
+</rss>
