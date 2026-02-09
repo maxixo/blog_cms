@@ -72,7 +72,7 @@ class Category
         ];
         
         $result = db_execute($sql, 'sss', $params);
-        return $result['insert_id'];
+        return (!empty($result['success'])) ? ($result['insert_id'] ?? false) : false;
     }
 
     /**
@@ -96,7 +96,8 @@ class Category
         $params[] = $id;
         $types .= 'i';
 
-        return db_execute($sql, $types, $params);
+        $result = db_execute($sql, $types, $params);
+        return !empty($result['success']);
     }
 
     /**
@@ -104,7 +105,8 @@ class Category
      */
     public function delete($id)
     {
-        return db_execute("DELETE FROM categories WHERE id = ?", 'i', [$id]);
+        $result = db_execute("DELETE FROM categories WHERE id = ?", 'i', [$id]);
+        return !empty($result['success']);
     }
 
     /**

@@ -9,6 +9,16 @@ if (!defined('DB_HOST')) {
     define('DB_NAME', 'blog_cms');
 }
 
+function db_log_error($message, $context = [])
+{
+    $line = $message;
+    if (defined('APP_DEBUG') && APP_DEBUG && !empty($context)) {
+        $line .= ' | ' . json_encode($context);
+    }
+
+    error_log($line);
+}
+
 // Get database connection
 function db_connect() {
     static $conn = null;
@@ -17,7 +27,9 @@ function db_connect() {
         $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
         
         if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
+            db_log_error('Database connection failed', ['error' => $conn->connect_error]);
+            $conn = null;
+            return null;
         }
         
         $conn->set_charset("utf8mb4");
@@ -29,10 +41,15 @@ function db_connect() {
 // Execute query with prepared statements
 function db_query($sql, $types = '', $params = []) {
     $conn = db_connect();
+    if (!$conn) {
+        return false;
+    }
+
     $stmt = $conn->prepare($sql);
     
     if (!$stmt) {
-        die("Prepare failed: " . $conn->error . " | SQL: " . $sql);
+        db_log_error('Database prepare failed', ['error' => $conn->error, 'sql' => $sql]);
+        return false;
     }
     
     // Bind parameters if provided
@@ -42,11 +59,14 @@ function db_query($sql, $types = '', $params = []) {
     
     // Execute statement
     if (!$stmt->execute()) {
-        die("Execute failed: " . $stmt->error);
+        db_log_error('Database execute failed', ['error' => $stmt->error, 'sql' => $sql]);
+        $stmt->close();
+        return false;
     }
     
     // Get result for SELECT queries
     $result = $stmt->get_result();
+    $stmt->close();
     
     return $result;
 }
@@ -54,19 +74,41 @@ function db_query($sql, $types = '', $params = []) {
 // Execute INSERT/UPDATE/DELETE queries
 function db_execute($sql, $types = '', $params = []) {
     $conn = db_connect();
+    if (!$conn) {
+        return [
+            'success' => false,
+            'affected_rows' => 0,
+            'insert_id' => 0
+        ];
+    }
+
     $stmt = $conn->prepare($sql);
     
     if (!$stmt) {
-        die("Prepare failed: " . $conn->error);
+        db_log_error('Database prepare failed', ['error' => $conn->error, 'sql' => $sql]);
+        return [
+            'success' => false,
+            'affected_rows' => 0,
+            'insert_id' => 0
+        ];
     }
     
     if (!empty($params) && !empty($types)) {
         $stmt->bind_param($types, ...$params);
     }
     
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        db_log_error('Database execute failed', ['error' => $stmt->error, 'sql' => $sql]);
+        $stmt->close();
+        return [
+            'success' => false,
+            'affected_rows' => 0,
+            'insert_id' => 0
+        ];
+    }
     
     $result = [
+        'success' => true,
         'affected_rows' => $stmt->affected_rows,
         'insert_id' => $stmt->insert_id
     ];

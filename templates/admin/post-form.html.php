@@ -2,7 +2,7 @@
     <div class="admin-header">
         <h1><?= esc($pageHeading ?? 'Post'); ?></h1>
         <p><?= esc($pageDescription ?? ''); ?></p>
-        <a href="/blog_cms/admin/posts.php" class="btn btn-secondary">← Back to Posts</a>
+        <a href="<?= esc(BASE_URL); ?>/admin/posts.php" class="btn btn-secondary">← Back to Posts</a>
     </div>
 
     <?php if (!empty($errors)): ?>
@@ -184,7 +184,7 @@
             </button>
 
             <?php if (isset($post['id']) && $post['status'] === 'published'): ?>
-                <a href="/blog_cms/post.php?slug=<?= esc($post['slug']); ?>" target="_blank" class="btn btn-outline">
+                <a href="<?= esc(BASE_URL); ?>/post.php?slug=<?= esc($post['slug']); ?>" target="_blank" class="btn btn-outline">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                         <polyline points="15 3 21 3 21 9"/>
@@ -322,3 +322,4 @@
     }
 });
 </script>
+

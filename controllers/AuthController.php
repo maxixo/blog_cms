@@ -102,10 +102,12 @@ class AuthController
 
         // Create session for the user
         session_start_safe();
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['email'] = $user['email'];
         $_SESSION['role'] = $user['role'] ?? 'user';
+        $_SESSION['user_role'] = $_SESSION['role'];
 
         // Success message and redirect
         setFlashMessage('success', 'Welcome back, ' . esc($user['username']) . '!');
@@ -196,8 +198,12 @@ class AuthController
 
         // Set session for the new user
         session_start_safe();
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $userId;
         $_SESSION['username'] = $username;
+        $_SESSION['email'] = $email;
+        $_SESSION['role'] = 'user';
+        $_SESSION['user_role'] = 'user';
 
         // Success message and redirect
         setFlashMessage('success', 'Registration successful! Welcome, ' . esc($username) . '!');

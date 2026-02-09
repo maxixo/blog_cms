@@ -36,7 +36,7 @@ class Comment
         ];
         
         $result = db_execute($sql, 'iis', $params);
-        return $result['insert_id'];
+        return (!empty($result['success'])) ? ($result['insert_id'] ?? false) : false;
     }
 
     /**
@@ -44,7 +44,8 @@ class Comment
      */
     public function delete($id)
     {
-        return db_execute("DELETE FROM comments WHERE id = ?", 'i', [$id]);
+        $result = db_execute("DELETE FROM comments WHERE id = ?", 'i', [$id]);
+        return !empty($result['success']);
     }
 
     /**
@@ -136,6 +137,7 @@ class Comment
     public function updateStatus($id, $status)
     {
         $sql = "UPDATE comments SET status = ? WHERE id = ?";
-        return db_execute($sql, 'si', [$status, $id]);
+        $result = db_execute($sql, 'si', [$status, $id]);
+        return !empty($result['success']);
     }
 }

@@ -4,7 +4,7 @@
             <h1><?= esc($pageHeading ?? 'Posts'); ?></h1>
             <p><?= esc($pageDescription ?? ''); ?></p>
         </div>
-        <a href="/blog_cms/admin/post-create.php" class="btn btn-primary">
+        <a href="<?= esc(BASE_URL); ?>/admin/post-create.php" class="btn btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"/>
                 <line x1="5" y1="12" x2="19" y2="12"/>
@@ -24,7 +24,7 @@
             </svg>
             <h3>No posts yet</h3>
             <p>Create your first blog post to get started.</p>
-            <a href="/blog_cms/admin/post-create.php" class="btn btn-primary">Create Post</a>
+            <a href="<?= esc(BASE_URL); ?>/admin/post-create.php" class="btn btn-primary">Create Post</a>
         </div>
     <?php else: ?>
         <div class="table-responsive">
@@ -74,7 +74,7 @@
                             <td>
                                 <div class="action-buttons">
                                     <?php if ($post['status'] === 'published'): ?>
-                                        <a href="/blog_cms/post.php?slug=<?= esc($post['slug']); ?>" 
+                                        <a href="<?= esc(BASE_URL); ?>/post.php?slug=<?= esc($post['slug']); ?>" 
                                            target="_blank" 
                                            class="btn btn-sm btn-outline" 
                                            title="View">
@@ -86,7 +86,7 @@
                                         </a>
                                     <?php endif; ?>
                                     
-                                    <a href="/blog_cms/admin/post-edit.php?id=<?= $post['id']; ?>" 
+                                    <a href="<?= esc(BASE_URL); ?>/admin/post-edit.php?id=<?= $post['id']; ?>" 
                                        class="btn btn-sm btn-primary" 
                                        title="Edit">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -95,7 +95,7 @@
                                         </svg>
                                     </a>
                                     
-                                    <form method="POST" action="/blog_cms/admin/posts.php" 
+                                    <form method="POST" action="<?= esc(BASE_URL); ?>/admin/posts.php" 
                                           class="delete-form" 
                                           onsubmit="return confirm('Are you sure you want to delete this post? This action cannot be undone.');">
                                         <input type="hidden" name="csrf_token" value="<?= generate_csrf_token(); ?>">

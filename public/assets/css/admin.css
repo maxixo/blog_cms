@@ -3,6 +3,11 @@
     color: var(--text);
 }
 
+.inline-form {
+    display: inline;
+    margin: 0;
+}
+
 .admin-page .site-header,
 .admin-page .site-footer {
     background: var(--card);

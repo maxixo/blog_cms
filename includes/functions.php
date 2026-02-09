@@ -61,6 +61,41 @@ function getCurrentUser()
     return null;
 }
 
+function getCurrentUserRole()
+{
+    session_start_safe();
+    if (isset($_SESSION['role'])) {
+        return $_SESSION['role'];
+    }
+    if (isset($_SESSION['user_role'])) {
+        return $_SESSION['user_role'];
+    }
+    return 'user';
+}
+
+function isAdmin()
+{
+    return getCurrentUserRole() === 'admin';
+}
+
+function requireLogin()
+{
+    if (!isLoggedIn()) {
+        header('Location: ' . BASE_URL . '/login.php');
+        exit;
+    }
+}
+
+function requireAdmin()
+{
+    requireLogin();
+    if (!isAdmin()) {
+        http_response_code(403);
+        setFlashMessage('error', 'You do not have permission to access that page.');
+        redirect(BASE_URL);
+    }
+}
+
 function addSearchToHistory($query)
 {
     $query = trim((string) $query);

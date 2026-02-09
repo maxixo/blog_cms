@@ -36,6 +36,7 @@ class CommentManageController
         $bodyClass = 'admin-page';
         $additionalCss = [ASSETS_URL . '/css/admin.css'];
         $additionalJs = [ASSETS_URL . '/js/admin.js'];
+        $csrfToken = generateCsrfToken();
 
         return compact(
             'comments',
@@ -48,12 +49,25 @@ class CommentManageController
             'pageTitle',
             'bodyClass',
             'additionalCss',
-            'additionalJs'
+            'additionalJs',
+            'csrfToken'
         );
     }
 
     public function delete($id)
     {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            $_SESSION['error'] = 'Invalid request method.';
+            header('Location: ' . BASE_URL . '/admin/comments.php');
+            exit;
+        }
+
+        if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+            $_SESSION['error'] = 'Invalid request. Please try again.';
+            header('Location: ' . BASE_URL . '/admin/comments.php');
+            exit;
+        }
+
         $comment = $this->commentModel->getById($id);
         
         if (!$comment) {

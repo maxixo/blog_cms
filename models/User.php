@@ -17,8 +17,8 @@ class User
                 VALUES (?, ?, ?, 'default-avatar.png', 'user')";
         
         $result = db_execute($sql, 'sss', [$username, $email, $passwordHash]);
-        
-        return $result['insert_id'] ?? false;
+
+        return (!empty($result['success'])) ? ($result['insert_id'] ?? false) : false;
     }
 
     /**

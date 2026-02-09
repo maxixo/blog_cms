@@ -21,6 +21,7 @@ class CategoryManageController
         $bodyClass = 'admin-page';
         $additionalCss = [ASSETS_URL . '/css/admin.css'];
         $additionalJs = [ASSETS_URL . '/js/admin.js'];
+        $csrfToken = generateCsrfToken();
 
         return compact(
             'categories',
@@ -29,7 +30,8 @@ class CategoryManageController
             'pageTitle',
             'bodyClass',
             'additionalCss',
-            'additionalJs'
+            'additionalJs',
+            'csrfToken'
         );
     }
 
@@ -159,6 +161,18 @@ class CategoryManageController
 
     public function delete($id)
     {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            $_SESSION['error'] = 'Invalid request method.';
+            header('Location: ' . BASE_URL . '/admin/categories.php');
+            exit;
+        }
+
+        if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+            $_SESSION['error'] = 'Invalid request. Please try again.';
+            header('Location: ' . BASE_URL . '/admin/categories.php');
+            exit;
+        }
+
         $category = $this->categoryModel->getById($id);
         
         if (!$category) {

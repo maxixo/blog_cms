@@ -58,11 +58,13 @@
                         <span class="badge badge-<?= $comment['status']; ?>">
                             <?= esc(ucfirst($comment['status'])); ?>
                         </span>
-                        <a href="<?= BASE_URL . '/admin/comments.php?action=delete&id=' . $comment['id']; ?>" 
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('Are you sure you want to delete this comment?');">
-                            Delete
-                        </a>
+                        <form method="POST" action="<?= BASE_URL . '/admin/comments.php'; ?>" class="inline-form"
+                              onsubmit="return confirm('Are you sure you want to delete this comment?');">
+                            <input type="hidden" name="csrf_token" value="<?= esc($csrfToken ?? ''); ?>">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="id" value="<?= (int) $comment['id']; ?>">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
                     </div>
                 </div>
             <?php endforeach; ?>

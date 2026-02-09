@@ -243,7 +243,7 @@ class Post {
         ];
         
         $result = db_execute($sql, 'sssssiisssss', $params);
-        return $result['insert_id'];
+        return (!empty($result['success'])) ? ($result['insert_id'] ?? false) : false;
     }
     
     public function update($id, $data) {
@@ -261,15 +261,18 @@ class Post {
         $params[] = $id;
         $types .= 'i';
         
-        return db_execute($sql, $types, $params);
+        $result = db_execute($sql, $types, $params);
+        return !empty($result['success']);
     }
     
     public function delete($id) {
-        return db_execute("DELETE FROM posts WHERE id = ?", 'i', [$id]);
+        $result = db_execute("DELETE FROM posts WHERE id = ?", 'i', [$id]);
+        return !empty($result['success']);
     }
     
     public function incrementViews($post_id) {
-        return db_execute("UPDATE posts SET views = views + 1 WHERE id = ?", 'i', [$post_id]);
+        $result = db_execute("UPDATE posts SET views = views + 1 WHERE id = ?", 'i', [$post_id]);
+        return !empty($result['success']);
     }
     
     private function generateUniqueSlug($title) {

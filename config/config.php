@@ -3,6 +3,16 @@ if (!defined('APP_STARTED')) {
     define('APP_STARTED', true);
 }
 
+function env_flag($key, $default = false)
+{
+    $value = getenv($key);
+    if ($value === false) {
+        return $default;
+    }
+
+    return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+}
+
 // Load environment variables from .env file
 function loadEnv($path) {
     if (!file_exists($path)) {
@@ -12,6 +22,10 @@ function loadEnv($path) {
     $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
         if (strpos(trim($line), '#') === 0) {
+            continue;
+        }
+
+        if (strpos($line, '=') === false) {
             continue;
         }
         
@@ -32,38 +46,80 @@ loadEnv(__DIR__ . '/../.env');
 
 date_default_timezone_set('UTC');
 
+$appEnv = strtolower(getenv('APP_ENV') ?: 'production');
+$appDebug = env_flag('APP_DEBUG', $appEnv !== 'production');
+
+define('APP_ENV', $appEnv);
+define('APP_DEBUG', $appDebug);
+
 error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set('display_errors', APP_DEBUG ? '1' : '0');
+ini_set('display_startup_errors', APP_DEBUG ? '1' : '0');
+ini_set('log_errors', '1');
+ini_set('html_errors', '0');
 ini_set('default_charset', 'UTF-8');
+
+$errorLogPath = getenv('APP_ERROR_LOG');
+if ($errorLogPath) {
+    ini_set('error_log', $errorLogPath);
+}
+
+$forceHttps = env_flag('APP_FORCE_HTTPS', false);
+$isHttps = $forceHttps || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+ini_set('session.cookie_httponly', '1');
+ini_set('session.cookie_secure', $isHttps ? '1' : '0');
+ini_set('session.cookie_samesite', 'Lax');
+
+$basePathEnv = getenv('APP_BASE_PATH');
+$basePath = $basePathEnv !== false ? trim($basePathEnv) : '/blog_cms';
+$basePath = '/' . trim($basePath, '/');
+if ($basePath === '/') {
+    $basePath = '';
+}
+
+$cookiePath = $basePath !== '' ? $basePath . '/' : '/';
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => $cookiePath,
+        'domain' => '',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+}
 
 // Database configuration
 // Update these values for your environment.
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'blog_cms');
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') ?: '');
+define('DB_NAME', getenv('DB_NAME') ?: 'blog_cms');
 
 // Site settings
-define('SITE_NAME', 'Blog CMS');
-define('SITE_TAGLINE', 'Publishing with clarity.');
-define('SITE_DESCRIPTION', 'A full-featured blog and content management system.');
-define('SITE_EMAIL', 'admin@example.com');
+define('SITE_NAME', getenv('SITE_NAME') ?: 'Blog CMS');
+define('SITE_TAGLINE', getenv('SITE_TAGLINE') ?: 'Publishing with clarity.');
+define('SITE_DESCRIPTION', getenv('SITE_DESCRIPTION') ?: 'A full-featured blog and content management system.');
+define('SITE_EMAIL', getenv('SITE_EMAIL') ?: 'admin@example.com');
 
 // RSS Feed Settings
-define('RSS_FEED_LIMIT', 20);
-define('RSS_CACHE_DURATION', 1800);
-define('RSS_DESCRIPTION_LENGTH', 300);
-define('RSS_INCLUDE_IMAGES', true);
+define('RSS_FEED_LIMIT', (int) (getenv('RSS_FEED_LIMIT') ?: 20));
+define('RSS_CACHE_DURATION', (int) (getenv('RSS_CACHE_DURATION') ?: 1800));
+define('RSS_DESCRIPTION_LENGTH', (int) (getenv('RSS_DESCRIPTION_LENGTH') ?: 300));
+define('RSS_INCLUDE_IMAGES', env_flag('RSS_INCLUDE_IMAGES', true));
 
-define('POSTS_PER_PAGE', 6);
-define('COMMENTS_PER_PAGE', 10);
+define('POSTS_PER_PAGE', (int) (getenv('POSTS_PER_PAGE') ?: 6));
+define('COMMENTS_PER_PAGE', (int) (getenv('COMMENTS_PER_PAGE') ?: 10));
 
 // Search Settings
-define('MIN_SEARCH_LENGTH', 2); // Minimum characters for search
-define('SEARCH_MAX_RESULTS', 100); // Maximum results to return
-define('SEARCH_CACHE_DURATION', 300); // Cache duration in seconds (5 min)
+define('MIN_SEARCH_LENGTH', (int) (getenv('MIN_SEARCH_LENGTH') ?: 2)); // Minimum characters for search
+define('SEARCH_MAX_RESULTS', (int) (getenv('SEARCH_MAX_RESULTS') ?: 100)); // Maximum results to return
+define('SEARCH_CACHE_DURATION', (int) (getenv('SEARCH_CACHE_DURATION') ?: 300)); // Cache duration in seconds (5 min)
 
-define('ENABLE_REGISTRATION', true);
+define('ENABLE_REGISTRATION', env_flag('ENABLE_REGISTRATION', true));
 
 // TinyMCE Configuration - using free jsDelivr CDN (no API key required)
 // You can still use TINYMCE_API_KEY in .env if you want to use TinyMCE Cloud
@@ -97,12 +153,14 @@ if (!empty($tinymceApiKey) && $tinymceApiKey !== 'your_api_key_here') {
 }
 
 // Explicitly set the base path for XAMPP setup
-// If your project is in a subdirectory, add it here (e.g., '/blog_cms')
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+// If your project is in a subdirectory, set APP_BASE_PATH (e.g., /blog_cms).
+$protocol = $isHttps ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-$subdirectory = '/blog_cms'; // Change this if your project is in a different subdirectory
+$baseUrlEnv = getenv('APP_BASE_URL');
+$baseUrl = $baseUrlEnv ? rtrim($baseUrlEnv, '/') : ($protocol . '://' . $host . $basePath);
 
-define('BASE_URL', $protocol . '://' . $host . $subdirectory);
+define('BASE_PATH', $basePath);
+define('BASE_URL', $baseUrl);
 
 define('ASSETS_URL', BASE_URL . '/public/assets');
 define('UPLOADS_PATH', __DIR__ . '/../public/uploads');
@@ -110,3 +168,14 @@ define('UPLOADS_URL', BASE_URL . '/public/uploads');
 
 define('DEFAULT_AVATAR', UPLOADS_URL . '/avatars/default-avatar.png');
 define('DEFAULT_OG_IMAGE', UPLOADS_URL . '/avatars/default-avatar.png');
+
+if (php_sapi_name() !== 'cli' && !headers_sent()) {
+    header('X-Frame-Options: SAMEORIGIN');
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+
+    if ($isHttps) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}

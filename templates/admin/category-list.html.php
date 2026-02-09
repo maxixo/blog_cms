@@ -46,11 +46,13 @@
                         <a href="<?= BASE_URL . '/admin/category-edit.php?id=' . $category['id']; ?>" class="btn btn-sm">
                             Edit
                         </a>
-                        <a href="<?= BASE_URL . '/admin/categories.php?action=delete&id=' . $category['id']; ?>" 
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('Are you sure you want to delete this category?');">
-                            Delete
-                        </a>
+                        <form method="POST" action="<?= BASE_URL . '/admin/categories.php'; ?>" class="inline-form"
+                              onsubmit="return confirm('Are you sure you want to delete this category?');">
+                            <input type="hidden" name="csrf_token" value="<?= esc($csrfToken ?? ''); ?>">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="id" value="<?= (int) $category['id']; ?>">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
                     </div>
                 </div>
             <?php endforeach; ?>

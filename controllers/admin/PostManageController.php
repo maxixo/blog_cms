@@ -149,7 +149,7 @@ class PostManageController
         }
 
         // Check if user owns the post or is admin
-        if ($post['author_id'] != $_SESSION['user_id'] && $_SESSION['user_role'] !== 'admin') {
+        if ($post['author_id'] != $_SESSION['user_id'] && !isAdmin()) {
             $_SESSION['error_message'] = 'You do not have permission to edit this post.';
             header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
@@ -206,7 +206,7 @@ class PostManageController
         }
 
         // Check permissions
-        if ($post['author_id'] != $_SESSION['user_id'] && $_SESSION['user_role'] !== 'admin') {
+        if ($post['author_id'] != $_SESSION['user_id'] && !isAdmin()) {
             $_SESSION['error_message'] = 'You do not have permission to edit this post.';
             header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
@@ -299,7 +299,7 @@ class PostManageController
         }
 
         // Check permissions
-        if ($post['author_id'] != $_SESSION['user_id'] && $_SESSION['user_role'] !== 'admin') {
+        if ($post['author_id'] != $_SESSION['user_id'] && !isAdmin()) {
             $_SESSION['error_message'] = 'You do not have permission to delete this post.';
             header('Location: ' . BASE_URL . '/admin/posts.php');
             exit;
