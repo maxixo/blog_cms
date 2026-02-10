@@ -121,6 +121,10 @@ define('SEARCH_CACHE_DURATION', (int) (getenv('SEARCH_CACHE_DURATION') ?: 300));
 
 define('ENABLE_REGISTRATION', env_flag('ENABLE_REGISTRATION', true));
 
+define('EMAIL_VERIFICATION_REQUIRED', env_flag('EMAIL_VERIFICATION_REQUIRED', true));
+define('PASSWORD_RESET_TOKEN_EXPIRY', (int) (getenv('PASSWORD_RESET_TOKEN_EXPIRY') ?: 3600));
+define('EMAIL_VERIFICATION_TOKEN_EXPIRY', (int) (getenv('EMAIL_VERIFICATION_TOKEN_EXPIRY') ?: 86400));
+
 // TinyMCE Configuration - using free jsDelivr CDN (no API key required)
 // You can still use TINYMCE_API_KEY in .env if you want to use TinyMCE Cloud
 $tinymceApiKey = getenv('TINYMCE_API_KEY') ?: '';

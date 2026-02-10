@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../services/BrevoEmailService.php';
+require_once __DIR__ . '/../config/EmailConfig.php';
 
 class AuthController
 {
@@ -100,6 +102,11 @@ class AuthController
             return $this->showLoginForm();
         }
 
+        $emailVerified = true;
+        if (array_key_exists('email_verified', $user)) {
+            $emailVerified = !empty($user['email_verified']);
+        }
+
         // Create session for the user
         session_start_safe();
         session_regenerate_id(true);
@@ -108,11 +115,21 @@ class AuthController
         $_SESSION['email'] = $user['email'];
         $_SESSION['role'] = $user['role'] ?? 'user';
         $_SESSION['user_role'] = $_SESSION['role'];
+        $_SESSION['email_verified'] = $emailVerified ? 1 : 0;
 
-        // Success message and redirect
+        regenerateCsrfToken();
+
+        if (!$emailVerified) {
+            if (EMAIL_VERIFICATION_REQUIRED) {
+                setFlashMessage('error', 'Please verify your email address to continue.');
+                redirect(BASE_URL . '/verify-email.php?email=' . urlencode($user['email']));
+            }
+
+            setFlashMessage('success', 'Welcome back, ' . esc($user['username']) . '! Please verify your email address.');
+            redirect(BASE_URL);
+        }
+
         setFlashMessage('success', 'Welcome back, ' . esc($user['username']) . '!');
-        
-        // Redirect to home page
         redirect(BASE_URL);
     }
 
@@ -196,6 +213,17 @@ class AuthController
             return $this->showRegisterForm();
         }
 
+        // Create email verification
+        $token = User::generateSecureToken();
+        $expiresIn = EmailConfig::emailVerificationExpirySeconds();
+        $verificationCreated = User::createEmailVerification($userId, $email, $token, $expiresIn);
+
+        $sendResult = ['success' => false];
+        if ($verificationCreated) {
+            $mailer = new BrevoEmailService();
+            $sendResult = $mailer->sendVerificationEmail($email, $username, $token);
+        }
+
         // Set session for the new user
         session_start_safe();
         session_regenerate_id(true);
@@ -204,11 +232,18 @@ class AuthController
         $_SESSION['email'] = $email;
         $_SESSION['role'] = 'user';
         $_SESSION['user_role'] = 'user';
+        $_SESSION['email_verified'] = 0;
 
-        // Success message and redirect
-        setFlashMessage('success', 'Registration successful! Welcome, ' . esc($username) . '!');
-        
-        // Redirect to home page
-        redirect(BASE_URL);
+        regenerateCsrfToken();
+
+        if (!$verificationCreated) {
+            setFlashMessage('error', 'Registration complete, but we could not create a verification request. Please resend the email.');
+        } elseif (!empty($sendResult['success'])) {
+            setFlashMessage('success', 'Registration successful! Please check your email to verify your account.');
+        } else {
+            setFlashMessage('error', 'Registration complete, but we could not send a verification email. Please resend it.');
+        }
+
+        redirect(BASE_URL . '/verify-email.php?email=' . urlencode($email));
     }
 }

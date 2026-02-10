@@ -28,6 +28,14 @@
         
         <button type="submit">Sign In</button>
     </form>
+
+    <p class="muted" style="margin-top: 0.75rem; text-align: center;">
+        <a href="<?= esc(BASE_URL); ?>/forgot-password.php">Forgot your password?</a>
+    </p>
+
+    <p class="muted" style="margin-top: 0.5rem; text-align: center;">
+        Need to verify your email? <a href="<?= esc(BASE_URL); ?>/verify-email.php">Resend verification</a>
+    </p>
     
     <p class="muted" style="margin-top: 1rem; text-align: center;">
         Don't have an account? <a href="<?= BASE_URL; ?>/register.php">Register here</a>

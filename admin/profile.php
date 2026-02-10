@@ -6,7 +6,17 @@ require_once __DIR__ . '/../controllers/admin/ProfileController.php';
 requireLogin();
 
 $controller = new ProfileController();
-$data = $controller->index();
+if (is_post_request()) {
+    $result = $controller->handlePasswordChange($_POST);
+    if (!empty($result['success'])) {
+        setFlashMessage('success', $result['success']);
+    } elseif (!empty($result['error'])) {
+        setFlashMessage('error', $result['error']);
+    }
+    redirect(BASE_URL . '/admin/profile.php');
+} else {
+    $data = $controller->index();
+}
 extract($data);
 
 $bodyClass = 'admin-page';

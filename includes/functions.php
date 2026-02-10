@@ -140,6 +140,13 @@ function verifyCsrfToken($token)
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
 
+function regenerateCsrfToken()
+{
+    session_start_safe();
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    return $_SESSION['csrf_token'];
+}
+
 // Snake_case aliases for compatibility
 function generate_csrf_token()
 {
@@ -149,6 +156,11 @@ function generate_csrf_token()
 function verify_csrf_token($token)
 {
     return verifyCsrfToken($token);
+}
+
+function regenerate_csrf_token()
+{
+    return regenerateCsrfToken();
 }
 
 // Flash messages
