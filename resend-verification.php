@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/controllers/EmailVerificationController.php';
 
@@ -13,6 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = $controller->showPending($email);
 }
 
-includeTemplate('layout/header', $data);
-includeTemplate('auth/verify-email', $data);
-includeTemplate('layout/footer', $data);
+extract($data);
+
+require_once __DIR__ . '/templates/layout/header.html.php';
+require_once __DIR__ . '/templates/auth/verify-email.html.php';
+require_once __DIR__ . '/templates/layout/footer.html.php';

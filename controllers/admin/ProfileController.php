@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../models/User.php';
-require_once __DIR__ . '/../../services/BrevoEmailService.php';
+require_once __DIR__ . '/../../services/ResendEmailService.php';
 
 class ProfileController
 {
@@ -72,7 +72,7 @@ class ProfileController
 
         $currentUser = User::findById($userId);
         if ($currentUser) {
-            $mailer = new BrevoEmailService();
+            $mailer = new ResendEmailService();
             $mailer->sendPasswordChangeConfirmation($currentUser['email'], $currentUser['username'] ?? $currentUser['email']);
         }
 

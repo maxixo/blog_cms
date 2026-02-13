@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../models/User.php';
-require_once __DIR__ . '/../services/BrevoEmailService.php';
+require_once __DIR__ . '/../services/ResendEmailService.php';
 require_once __DIR__ . '/../config/EmailConfig.php';
 
 class AuthController
@@ -220,7 +220,7 @@ class AuthController
 
         $sendResult = ['success' => false];
         if ($verificationCreated) {
-            $mailer = new BrevoEmailService();
+            $mailer = new ResendEmailService();
             $sendResult = $mailer->sendVerificationEmail($email, $username, $token);
         }
 

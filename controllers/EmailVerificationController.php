@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../models/User.php';
-require_once __DIR__ . '/../services/BrevoEmailService.php';
+require_once __DIR__ . '/../services/ResendEmailService.php';
 
 class EmailVerificationController
 {
@@ -101,14 +101,14 @@ class EmailVerificationController
         }
         
         // Delete any existing verification tokens
-        User::deleteExpiredPasswordResets();
+        User::deleteEmailVerificationsForUser((int) $user['id']);
         
         // Generate new token
         $token = User::generateSecureToken();
         User::createEmailVerification($user['id'], $email, $token, EMAIL_VERIFICATION_TOKEN_EXPIRY);
         
         // Send verification email
-        $emailService = new BrevoEmailService();
+        $emailService = new ResendEmailService();
         $result = $emailService->sendVerificationEmail($email, $user['username'], $token);
         
         if ($result['success']) {

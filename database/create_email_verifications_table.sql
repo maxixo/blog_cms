@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS email_verifications (
     email VARCHAR(255) NOT NULL,
     token VARCHAR(64) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP NOT NULL,
-    verified_at TIMESTAMP NULL,
+    expires_at DATETIME NOT NULL,
+    verified_at DATETIME NULL,
     INDEX idx_token (token),
     INDEX idx_user_id (user_id),
     INDEX idx_email (email),
@@ -17,5 +17,5 @@ CREATE TABLE IF NOT EXISTS email_verifications (
 -- Add email verification columns to users table if they don't exist
 ALTER TABLE users 
 ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE,
-ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP NULL,
+ADD COLUMN IF NOT EXISTS email_verified_at DATETIME NULL,
 ADD INDEX IF NOT EXISTS idx_email_verified (email_verified);

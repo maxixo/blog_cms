@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../models/User.php';
-require_once __DIR__ . '/../services/BrevoEmailService.php';
+require_once __DIR__ . '/../services/ResendEmailService.php';
 
 class PasswordResetController
 {
@@ -74,7 +74,7 @@ class PasswordResetController
         User::createPasswordReset($user['id'], $email, $token, PASSWORD_RESET_TOKEN_EXPIRY);
         
         // Send password reset email
-        $emailService = new BrevoEmailService();
+        $emailService = new ResendEmailService();
         $result = $emailService->sendPasswordResetEmail($email, $user['username'], $token);
         
         if ($result['success']) {
@@ -185,7 +185,7 @@ class PasswordResetController
         // Send confirmation email
         $user = User::findById($reset['user_id']);
         if ($user) {
-            $emailService = new BrevoEmailService();
+            $emailService = new ResendEmailService();
             $emailService->sendPasswordChangeConfirmation($user['email'], $user['username']);
         }
         

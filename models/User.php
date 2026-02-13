@@ -136,6 +136,13 @@ class User
         return self::markEmailAsVerified((int) $verification['user_id']);
     }
 
+    public static function deleteEmailVerificationsForUser($userId)
+    {
+        $sql = "DELETE FROM email_verifications WHERE user_id = ?";
+        $result = db_execute($sql, 'i', [(int) $userId]);
+        return !empty($result['success']);
+    }
+
     public static function markEmailAsVerified($userId)
     {
         $sql = "UPDATE users SET email_verified = 1, email_verified_at = NOW() WHERE id = ?";

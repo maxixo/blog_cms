@@ -6,14 +6,29 @@ class EmailConfig
     public const DEFAULT_PASSWORD_RESET_EXPIRY = 3600;
     public const DEFAULT_EMAIL_VERIFICATION_EXPIRY = 86400;
 
-    public static function brevoApiKey()
+    public static function resendApiKey()
     {
-        return trim((string) (getenv('BREVO_API_KEY') ?: ''));
+        return trim((string) (getenv('RESEND_API_KEY') ?: ''));
+    }
+
+    public static function resendApiBaseUrl()
+    {
+        $envValue = trim((string) (getenv('RESEND_API_URL') ?: ''));
+        if ($envValue !== '') {
+            return rtrim($envValue, '/');
+        }
+
+        return 'https://api.resend.com';
+    }
+
+    public static function resendEmailsUrl()
+    {
+        return self::resendApiBaseUrl() . '/emails';
     }
 
     public static function senderEmail()
     {
-        $envValue = trim((string) (getenv('BREVO_SENDER_EMAIL') ?: ''));
+        $envValue = trim((string) (getenv('RESEND_FROM_EMAIL') ?: ''));
         if ($envValue !== '') {
             return $envValue;
         }
@@ -23,7 +38,7 @@ class EmailConfig
 
     public static function senderName()
     {
-        $envValue = trim((string) (getenv('BREVO_SENDER_NAME') ?: ''));
+        $envValue = trim((string) (getenv('RESEND_FROM_NAME') ?: ''));
         if ($envValue !== '') {
             return $envValue;
         }
@@ -52,7 +67,7 @@ class EmailConfig
 
     public static function verificationUrl($token)
     {
-        return rtrim(BASE_URL, '/') . '/verify-email.php?token=' . urlencode($token);
+        return rtrim(BASE_URL, '/') . '/verify-pending.php?token=' . urlencode($token);
     }
 
     public static function passwordResetUrl($token)

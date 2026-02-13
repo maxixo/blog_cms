@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/controllers/EmailVerificationController.php';
 
@@ -10,6 +11,10 @@ $email = trim($_GET['email'] ?? '');
 // Show pending verification page
 $data = $controller->showPending($email);
 
-includeTemplate('layout/header', $data);
-includeTemplate('auth/verify-email', $data);
-includeTemplate('layout/footer', $data);unset($_SESSION['email_verification_result']);
+extract($data);
+
+require_once __DIR__ . '/templates/layout/header.html.php';
+require_once __DIR__ . '/templates/auth/verify-email.html.php';
+require_once __DIR__ . '/templates/layout/footer.html.php';
+
+unset($_SESSION['email_verification_result']);
