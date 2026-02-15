@@ -32,7 +32,8 @@ class PasswordResetController
             'pageTitle' => $pageTitle,
             'error' => $error,
             'success' => $success,
-            'csrf_token' => generateCsrfToken()
+            'csrf_token' => generateCsrfToken(),
+            'expiry_minutes' => (int) (PASSWORD_RESET_TOKEN_EXPIRY / 60)
         ];
     }
     
@@ -121,7 +122,8 @@ class PasswordResetController
             'token' => $token,
             'error' => $error,
             'success' => $success,
-            'csrf_token' => generateCsrfToken()
+            'csrf_token' => generateCsrfToken(),
+            'expiry_minutes' => (int) (PASSWORD_RESET_TOKEN_EXPIRY / 60)
         ];
     }
     

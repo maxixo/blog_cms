@@ -244,39 +244,37 @@ class User
      * Get user's last login time
      * 
      * @param int $userId
-     * @return string|null Returns datetime string or null if never logged in
+     * @return string|null Returns timestamp or null if never logged in
      */
     public static function getLastLoginTime($userId)
     {
         $sql = "SELECT last_login_at FROM users WHERE id = ? LIMIT 1";
         $user = db_fetch($sql, 'i', [$userId]);
-        return $user ? $user['last_login_at'] : null;
+        return $user['last_login_at'] ?? null;
     }
 
     /**
-     * Check if user should reverify email (48+ hours since last login)
+     * Check if user should reverify email (hasn't logged in for X hours)
      * 
      * @param int $userId
-     * @param int $hours Number of hours to check (default: 48)
-     * @return bool Returns true if reverification is needed
+     * @param int $hours Number of hours threshold (default 48)
+     * @return bool True if user should reverify
      */
     public static function shouldReverifyEmail($userId, $hours = 48)
     {
         $lastLogin = self::getLastLoginTime($userId);
         
-        // If never logged in, reverification is needed
         if ($lastLogin === null) {
-            return true;
+            return true; // User has never logged in
         }
         
         $lastLoginTime = strtotime($lastLogin);
         if ($lastLoginTime === false) {
-            return true;
+            return true; // Invalid timestamp
         }
         
-        $timeSinceLogin = time() - $lastLoginTime;
-        $hoursInSeconds = $hours * 3600;
+        $hoursSinceLastLogin = (time() - $lastLoginTime) / 3600;
         
-        return $timeSinceLogin >= $hoursInSeconds;
+        return $hoursSinceLastLogin >= $hours;
     }
 }
