@@ -44,46 +44,52 @@ class PasswordResetController
      */
     public function handleForgotRequest($postData): array
     {
-        // Verify CSRF token
-        if (!isset($postData['csrf_token']) || !verifyCsrfToken($postData['csrf_token'])) {
+        try {
+            // Verify CSRF token
+            if (!isset($postData['csrf_token']) || !verifyCsrfToken($postData['csrf_token'])) {
+                return $this->showForgotForm();
+            }
+
+            $email = trim($postData['email'] ?? '');
+
+            // Validate email
+            if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                setFlashMessage('error', 'Please provide a valid email address.');
+                return $this->showForgotForm();
+            }
+
+            // Find user by email
+            $user = User::findByEmail($email);
+
+            if (!$user) {
+                // Don't reveal if email exists or not
+                setFlashMessage('success', 'If an account exists with this email, a password reset link has been sent.');
+                return $this->showForgotForm();
+            }
+
+            // Delete any existing reset tokens for this user
+            User::deleteExpiredPasswordResets();
+
+            // Generate new token
+            $token = User::generateSecureToken();
+            User::createPasswordReset($user['id'], $email, $token, PASSWORD_RESET_TOKEN_EXPIRY);
+
+            // Send password reset email
+            $emailService = new ResendEmailService();
+            $result = $emailService->sendPasswordResetEmail($email, $user['username'], $token);
+
+            if ($result['success']) {
+                setFlashMessage('success', 'A password reset link has been sent to ' . esc($email) . '. Please check your inbox.');
+            } else {
+                setFlashMessage('error', 'Failed to send password reset email. ' . $result['message']);
+            }
+
+            return $this->showForgotForm();
+        } catch (Throwable $e) {
+            error_log('Forgot password error: ' . $e->getMessage());
+            setFlashMessage('error', 'Something went wrong while processing your request. Please try again later.');
             return $this->showForgotForm();
         }
-        
-        $email = trim($postData['email'] ?? '');
-        
-        // Validate email
-        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            setFlashMessage('error', 'Please provide a valid email address.');
-            return $this->showForgotForm();
-        }
-        
-        // Find user by email
-        $user = User::findByEmail($email);
-        
-        if (!$user) {
-            // Don't reveal if email exists or not
-            setFlashMessage('success', 'If an account exists with this email, a password reset link has been sent.');
-            return $this->showForgotForm();
-        }
-        
-        // Delete any existing reset tokens for this user
-        User::deleteExpiredPasswordResets();
-        
-        // Generate new token
-        $token = User::generateSecureToken();
-        User::createPasswordReset($user['id'], $email, $token, PASSWORD_RESET_TOKEN_EXPIRY);
-        
-        // Send password reset email
-        $emailService = new ResendEmailService();
-        $result = $emailService->sendPasswordResetEmail($email, $user['username'], $token);
-        
-        if ($result['success']) {
-            setFlashMessage('success', 'A password reset link has been sent to ' . esc($email) . '. Please check your inbox.');
-        } else {
-            setFlashMessage('error', 'Failed to send password reset email. ' . $result['message']);
-        }
-        
-        return $this->showForgotForm();
     }
     
     /**

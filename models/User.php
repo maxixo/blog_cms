@@ -226,4 +226,57 @@ class User
     {
         return bin2hex(random_bytes(32));
     }
+
+    /**
+     * Update user's last login timestamp
+     * 
+     * @param int $userId
+     * @return bool
+     */
+    public static function updateLastLogin($userId)
+    {
+        $sql = "UPDATE users SET last_login_at = NOW() WHERE id = ?";
+        $result = db_execute($sql, 'i', [$userId]);
+        return !empty($result['success']);
+    }
+
+    /**
+     * Get user's last login time
+     * 
+     * @param int $userId
+     * @return string|null Returns datetime string or null if never logged in
+     */
+    public static function getLastLoginTime($userId)
+    {
+        $sql = "SELECT last_login_at FROM users WHERE id = ? LIMIT 1";
+        $user = db_fetch($sql, 'i', [$userId]);
+        return $user ? $user['last_login_at'] : null;
+    }
+
+    /**
+     * Check if user should reverify email (48+ hours since last login)
+     * 
+     * @param int $userId
+     * @param int $hours Number of hours to check (default: 48)
+     * @return bool Returns true if reverification is needed
+     */
+    public static function shouldReverifyEmail($userId, $hours = 48)
+    {
+        $lastLogin = self::getLastLoginTime($userId);
+        
+        // If never logged in, reverification is needed
+        if ($lastLogin === null) {
+            return true;
+        }
+        
+        $lastLoginTime = strtotime($lastLogin);
+        if ($lastLoginTime === false) {
+            return true;
+        }
+        
+        $timeSinceLogin = time() - $lastLoginTime;
+        $hoursInSeconds = $hours * 3600;
+        
+        return $timeSinceLogin >= $hoursInSeconds;
+    }
 }

@@ -117,8 +117,12 @@ class AuthController
         $_SESSION['user_role'] = $_SESSION['role'];
         $_SESSION['email_verified'] = $emailVerified ? 1 : 0;
 
+        // Update last login timestamp
+        User::updateLastLogin($user['id']);
+
         regenerateCsrfToken();
 
+        // If email is not verified, handle verification
         if (!$emailVerified) {
             if (EMAIL_VERIFICATION_REQUIRED) {
                 setFlashMessage('error', 'Please verify your email address to continue.');
@@ -127,6 +131,14 @@ class AuthController
 
             setFlashMessage('success', 'Welcome back, ' . esc($user['username']) . '! Please verify your email address.');
             redirect(BASE_URL);
+        }
+
+        // Check if user should reverify (48+ hours since last login)
+        $shouldReverify = User::shouldReverifyEmail($user['id'], 48);
+        
+        if ($shouldReverify && EMAIL_VERIFICATION_REQUIRED) {
+            setFlashMessage('warning', 'For security, please verify your email address. You haven\'t logged in for over 48 hours.');
+            redirect(BASE_URL . '/verify-email.php?email=' . urlencode($user['email']));
         }
 
         setFlashMessage('success', 'Welcome back, ' . esc($user['username']) . '!');

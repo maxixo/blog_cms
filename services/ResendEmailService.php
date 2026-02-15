@@ -175,6 +175,14 @@ class ResendEmailService
             ];
         }
 
+        if (!function_exists('curl_init')) {
+            $this->logEmailAttempt('error', $toEmail, false, 'cURL extension not enabled');
+            return [
+                'success' => false,
+                'message' => 'Email service unavailable. Please contact the administrator.'
+            ];
+        }
+
         $jsonData = json_encode($data);
 
         if ($this->debugMode && php_sapi_name() === 'cli') {
