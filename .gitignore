@@ -2,7 +2,16 @@
 *.md
 
 # Environment variables
-.env
-.env.local
-.env.production
-logs/email.log
+.env*
+!.env.example
+
+# Logs
+logs/
+
+# Cache
+cache/
+
+# User uploads (keep the default avatar)
+public/uploads/*
+!public/uploads/avatars/
+!public/uploads/avatars/default-avatar.png

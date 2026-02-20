@@ -3,8 +3,11 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    RewriteRule ^(config|includes|controllers|models|templates)/ - [F]
+    RewriteRule ^(\.env|\.env\..+|\.git)/ - [F]
+    RewriteRule ^(config|includes|controllers|models|templates|services|database|logs|cache)/ - [F]
+    RewriteRule ^(check_.*\.php|test_.*\.php|run_migration_.*\.php|revert_migration_.*\.php)$ - [F]
     RewriteRule ^public/uploads/posts/.*\.(php|phtml|php[0-9])$ - [F]
+    RewriteRule \.sql$ - [F]
 
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d

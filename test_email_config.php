@@ -10,6 +10,11 @@
  *   php test_email_config.php send-test    - Check config and send a test email
  */
 
+if (php_sapi_name() !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/services/ResendEmailService.php';
 require_once __DIR__ . '/config/EmailConfig.php';

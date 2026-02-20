@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/rate-limiter.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../services/ResendEmailService.php';
 require_once __DIR__ . '/../config/EmailConfig.php';
@@ -84,6 +85,13 @@ class AuthController
         // If there are validation errors, return them
         if (!empty($errors)) {
             setFlashMessage('error', implode(' ', $errors));
+            return $this->showLoginForm();
+        }
+
+        $clientIp = trim((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+        $loginRateLimitKey = 'login:' . strtolower($email) . ':' . $clientIp;
+        if (!rateLimit($loginRateLimitKey, 5, 15 * 60)) {
+            setFlashMessage('error', 'Too many login attempts. Please try again in 15 minutes.');
             return $this->showLoginForm();
         }
 
@@ -187,8 +195,22 @@ class AuthController
         // Validate password
         if (empty($password)) {
             $errors[] = 'Password is required.';
-        } elseif (strlen($password) < 6) {
-            $errors[] = 'Password must be at least 6 characters long.';
+        } else {
+            if (strlen($password) < 12) {
+                $errors[] = 'Password must be at least 12 characters long.';
+            }
+            if (!preg_match('/[A-Z]/', $password)) {
+                $errors[] = 'Password must contain at least one uppercase letter.';
+            }
+            if (!preg_match('/[a-z]/', $password)) {
+                $errors[] = 'Password must contain at least one lowercase letter.';
+            }
+            if (!preg_match('/[0-9]/', $password)) {
+                $errors[] = 'Password must contain at least one number.';
+            }
+            if (!preg_match('/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/', $password)) {
+                $errors[] = 'Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?).';
+            }
         }
 
         // Validate password confirmation
@@ -199,6 +221,13 @@ class AuthController
         // If there are validation errors, return them
         if (!empty($errors)) {
             setFlashMessage('error', implode(' ', $errors));
+            return $this->showRegisterForm();
+        }
+
+        $clientIp = trim((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+        $registrationRateLimitKey = 'register:' . strtolower($email) . ':' . $clientIp;
+        if (!rateLimit($registrationRateLimitKey, 3, 60 * 60)) {
+            setFlashMessage('error', 'Too many registration attempts. Please try again in 1 hour.');
             return $this->showRegisterForm();
         }
 

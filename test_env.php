@@ -1,5 +1,10 @@
 <?php
 // Test script to verify .env file loading
+if (php_sapi_name() !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 require_once __DIR__ . '/config/config.php';
 
 echo "<h1>Environment Variables Test</h1>";

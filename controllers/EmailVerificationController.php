@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/rate-limiter.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../services/ResendEmailService.php';
 
@@ -82,6 +83,13 @@ class EmailVerificationController
         // Validate email
         if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             setFlashMessage('error', 'Please provide a valid email address.');
+            return $this->showPending($email);
+        }
+
+        $clientIp = trim((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+        $verificationRateLimitKey = 'email-verification:' . strtolower($email) . ':' . $clientIp;
+        if (!rateLimit($verificationRateLimitKey, 3, 60 * 60)) {
+            setFlashMessage('error', 'Too many verification email requests. Please try again in 1 hour.');
             return $this->showPending($email);
         }
         

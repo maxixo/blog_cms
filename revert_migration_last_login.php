@@ -4,6 +4,11 @@
  * Run this file to remove the column added for 48-hour re-verification logic
  */
 
+if (php_sapi_name() !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 require_once __DIR__ . '/config/database.php';
 
 echo "========================================\n";

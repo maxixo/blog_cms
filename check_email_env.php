@@ -6,6 +6,11 @@
  * Run from console: php check_email_env.php
  */
 
+if (php_sapi_name() !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 // ANSI color codes for terminal output
 define('COLOR_GREEN', "\033[32m");
 define('COLOR_RED', "\033[31m");

@@ -65,7 +65,21 @@ if ($errorLogPath) {
 }
 
 $forceHttps = env_flag('APP_FORCE_HTTPS', false);
-$isHttps = $forceHttps || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+$forwardedProto = strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '');
+$forwardedSsl = strtolower($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '');
+$requestIsHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || $forwardedProto === 'https'
+    || $forwardedSsl === 'on';
+$isHttps = $forceHttps || $requestIsHttps;
+
+if ($forceHttps && !$requestIsHttps && php_sapi_name() !== 'cli') {
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $uri = $_SERVER['REQUEST_URI'] ?? '/';
+    if ($host !== '') {
+        header('Location: https://' . $host . $uri, true, 301);
+        exit;
+    }
+}
 
 ini_set('session.use_strict_mode', '1');
 ini_set('session.use_only_cookies', '1');

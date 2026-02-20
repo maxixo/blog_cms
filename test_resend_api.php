@@ -12,6 +12,11 @@
  *   php test_resend_api.php send user@example.com
  */
 
+if (php_sapi_name() !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 // Enable error reporting
 error_reporting(E_ALL);
 ini_set('display_errors', 1);

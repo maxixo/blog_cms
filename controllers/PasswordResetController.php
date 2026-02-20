@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/rate-limiter.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../services/ResendEmailService.php';
 
@@ -56,6 +57,13 @@ class PasswordResetController
             // Validate email
             if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 setFlashMessage('error', 'Please provide a valid email address.');
+                return $this->showForgotForm();
+            }
+
+            $clientIp = trim((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+            $passwordResetRateLimitKey = 'password-reset:' . strtolower($email) . ':' . $clientIp;
+            if (!rateLimit($passwordResetRateLimitKey, 3, 60 * 60)) {
+                setFlashMessage('error', 'Too many password reset requests. Please try again in 1 hour.');
                 return $this->showForgotForm();
             }
 
