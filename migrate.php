@@ -43,10 +43,50 @@ if ($conn->connect_error) {
     exit(1);
 }
 
+if (function_exists('mysqli_report')) {
+    mysqli_report(MYSQLI_REPORT_OFF);
+}
+
 $conn->set_charset('utf8mb4');
 
 echo "Connected to {$database} at {$host}:{$port}\n";
 echo "Running users table migration...\n\n";
+
+$usersTableExists = false;
+$tableCheck = $conn->query("SHOW TABLES LIKE 'users'");
+if ($tableCheck !== false && $tableCheck->num_rows > 0) {
+    $usersTableExists = true;
+}
+
+if (!$usersTableExists) {
+    echo "users table not found. Creating it...\n";
+    $createUsersSql = "CREATE TABLE users (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(50) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        avatar VARCHAR(255) NOT NULL DEFAULT 'default-avatar.png',
+        role VARCHAR(20) NOT NULL DEFAULT 'user',
+        bio TEXT NULL,
+        email_verified TINYINT(1) NOT NULL DEFAULT 0,
+        email_verified_at DATETIME NULL,
+        login_attempts INT NOT NULL DEFAULT 0,
+        lockout_until DATETIME NULL,
+        last_login_at DATETIME NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uniq_users_username (username),
+        UNIQUE KEY uniq_users_email (email)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
+    if ($conn->query($createUsersSql) !== true) {
+        http_response_code(500);
+        echo "Failed to create users table: " . $conn->error . "\n";
+        $conn->close();
+        exit(1);
+    }
+
+    echo "users table created.\n\n";
+}
 
 $columns = [
     'role' => "VARCHAR(20) NOT NULL DEFAULT 'user'",
