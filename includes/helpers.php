@@ -64,6 +64,19 @@ function resolve_image_url($path)
     return BASE_URL . '/' . $path;
 }
 
+function asset_url($assetPath)
+{
+    $assetPath = ltrim((string) $assetPath, '/');
+    $url = ASSETS_URL . '/' . $assetPath;
+    $filePath = __DIR__ . '/../public/assets/' . $assetPath;
+
+    if (is_file($filePath)) {
+        return $url . '?v=' . filemtime($filePath);
+    }
+
+    return $url;
+}
+
 function format_post_date($post)
 {
     $value = $post['published_at'] ?? $post['created_at'] ?? '';
