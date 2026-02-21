@@ -2,7 +2,8 @@ FROM php:8.2-apache
 
 # PHP extensions needed by this app (mysqli + pdo_mysql)
 RUN docker-php-ext-install mysqli pdo_mysql \
-    && a2enmod rewrite headers \
+    && a2dismod mpm_event mpm_worker || true \
+    && a2enmod mpm_prefork rewrite headers \
     && sed -ri '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
 WORKDIR /var/www/html
