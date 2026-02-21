@@ -16,8 +16,8 @@ if (function_exists('mysqli_report')) {
 function db_log_error($message, $context = [])
 {
     $line = $message;
-    if (defined('APP_DEBUG') && APP_DEBUG && !empty($context)) {
-        $line .= ' | ' . json_encode($context);
+    if (!empty($context)) {
+        $line .= ' | ' . json_encode($context, JSON_UNESCAPED_SLASHES);
     }
 
     error_log($line);
@@ -92,18 +92,22 @@ function db_execute($sql, $types = '', $params = []) {
         return [
             'success' => false,
             'affected_rows' => 0,
-            'insert_id' => 0
+            'insert_id' => 0,
+            'error' => 'Database connection unavailable',
+            'errno' => 0
         ];
     }
 
     $stmt = $conn->prepare($sql);
     
     if (!$stmt) {
-        db_log_error('Database prepare failed', ['error' => $conn->error, 'sql' => $sql]);
+        db_log_error('Database prepare failed', ['error' => $conn->error, 'errno' => $conn->errno, 'sql' => $sql]);
         return [
             'success' => false,
             'affected_rows' => 0,
-            'insert_id' => 0
+            'insert_id' => 0,
+            'error' => $conn->error,
+            'errno' => (int) $conn->errno
         ];
     }
     
@@ -112,12 +116,14 @@ function db_execute($sql, $types = '', $params = []) {
     }
     
     if (!$stmt->execute()) {
-        db_log_error('Database execute failed', ['error' => $stmt->error, 'sql' => $sql]);
+        db_log_error('Database execute failed', ['error' => $stmt->error, 'errno' => $stmt->errno, 'sql' => $sql]);
         $stmt->close();
         return [
             'success' => false,
             'affected_rows' => 0,
-            'insert_id' => 0
+            'insert_id' => 0,
+            'error' => $stmt->error,
+            'errno' => (int) $stmt->errno
         ];
     }
     

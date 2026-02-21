@@ -17,6 +17,13 @@ class User
                 VALUES (?, ?, ?, 'default-avatar.png', 'user')";
         
         $result = db_execute($sql, 'sss', [$username, $email, $passwordHash]);
+        if (empty($result['success'])) {
+            error_log('User::create failed | ' . json_encode([
+                'email' => strtolower((string) $email),
+                'error' => $result['error'] ?? 'unknown',
+                'errno' => $result['errno'] ?? 0
+            ], JSON_UNESCAPED_SLASHES));
+        }
 
         return (!empty($result['success'])) ? ($result['insert_id'] ?? false) : false;
     }
