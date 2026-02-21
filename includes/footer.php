@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 if (!defined('APP_STARTED')) {
     http_response_code(403);
     exit('Forbidden');

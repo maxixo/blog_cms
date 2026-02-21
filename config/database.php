@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // config/database.php
 
 // Database configuration
@@ -7,6 +7,10 @@ if (!defined('DB_HOST')) {
     define('DB_USER', 'root');
     define('DB_PASS', '');
     define('DB_NAME', 'blog_cms');
+}
+
+if (function_exists('mysqli_report')) {
+    mysqli_report(MYSQLI_REPORT_OFF);
 }
 
 function db_log_error($message, $context = [])
@@ -24,10 +28,20 @@ function db_connect() {
     static $conn = null;
     
     if ($conn === null) {
-        $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-        
-        if ($conn->connect_error) {
-            db_log_error('Database connection failed', ['error' => $conn->connect_error]);
+        try {
+            $conn = @new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        } catch (Throwable $e) {
+            db_log_error('Database connection exception', ['error' => $e->getMessage()]);
+            $conn = null;
+            return null;
+        }
+
+        if (!$conn || $conn->connect_error) {
+            db_log_error('Database connection failed', [
+                'error' => $conn ? $conn->connect_error : 'Unknown connection error',
+                'host' => DB_HOST,
+                'database' => DB_NAME
+            ]);
             $conn = null;
             return null;
         }

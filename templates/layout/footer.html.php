@@ -37,12 +37,12 @@
     <button class="back-to-top" type="button" aria-label="Back to top" aria-hidden="true">
         Back to top
     </button>
-    <script nonce="<?= esc(CSP_NONCE ?? ''); ?>" src="<?= esc(ASSETS_URL); ?>/js/main.js"></script>
+    <script nonce="<?= esc(defined('CSP_NONCE') ? CSP_NONCE : ''); ?>" src="<?= esc(ASSETS_URL); ?>/js/main.js"></script>
     <?php if (!empty($additionalJs)): ?>
         <?php foreach ($additionalJs as $js): ?>
             <?php // Skip TinyMCE as it's loaded in header ?>
             <?php if (strpos($js, 'tinymce') === false): ?>
-                <script nonce="<?= esc(CSP_NONCE ?? ''); ?>" src="<?= esc($js); ?>"></script>
+                <script nonce="<?= esc(defined('CSP_NONCE') ? CSP_NONCE : ''); ?>" src="<?= esc($js); ?>"></script>
             <?php endif; ?>
         <?php endforeach; ?>
     <?php endif; ?>
