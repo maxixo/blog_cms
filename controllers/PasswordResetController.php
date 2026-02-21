@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/rate-limiter.php';
+require_once __DIR__ . '/../includes/security-logger.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../services/ResendEmailService.php';
 
@@ -53,16 +54,24 @@ class PasswordResetController
             }
 
             $email = trim($postData['email'] ?? '');
+            $clientIp = trim((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
 
             // Validate email
             if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                logSecurityEvent('password_reset_request_invalid', [
+                    'email' => strtolower($email),
+                    'ip' => $clientIp
+                ]);
                 setFlashMessage('error', 'Please provide a valid email address.');
                 return $this->showForgotForm();
             }
 
-            $clientIp = trim((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
             $passwordResetRateLimitKey = 'password-reset:' . strtolower($email) . ':' . $clientIp;
             if (!rateLimit($passwordResetRateLimitKey, 3, 60 * 60)) {
+                logSecurityEvent('password_reset_rate_limited', [
+                    'email' => strtolower($email),
+                    'ip' => $clientIp
+                ]);
                 setFlashMessage('error', 'Too many password reset requests. Please try again in 1 hour.');
                 return $this->showForgotForm();
             }
@@ -71,6 +80,11 @@ class PasswordResetController
             $user = User::findByEmail($email);
 
             if (!$user) {
+                logSecurityEvent('password_reset_requested', [
+                    'email' => strtolower($email),
+                    'ip' => $clientIp,
+                    'user_found' => false
+                ]);
                 // Don't reveal if email exists or not
                 setFlashMessage('success', 'If an account exists with this email, a password reset link has been sent.');
                 return $this->showForgotForm();
@@ -81,20 +95,43 @@ class PasswordResetController
 
             // Generate new token
             $token = User::generateSecureToken();
-            User::createPasswordReset($user['id'], $email, $token, PASSWORD_RESET_TOKEN_EXPIRY);
+            $created = User::createPasswordReset($user['id'], $email, $token, PASSWORD_RESET_TOKEN_EXPIRY);
+            logSecurityEvent('password_reset_requested', [
+                'user_id' => (int) $user['id'],
+                'email' => strtolower($email),
+                'ip' => $clientIp,
+                'user_found' => true,
+                'reset_created' => !empty($created)
+            ]);
 
             // Send password reset email
             $emailService = new ResendEmailService();
             $result = $emailService->sendPasswordResetEmail($email, $user['username'], $token);
 
             if ($result['success']) {
+                logSecurityEvent('password_reset_email_sent', [
+                    'user_id' => (int) $user['id'],
+                    'email' => strtolower($email),
+                    'ip' => $clientIp
+                ]);
                 setFlashMessage('success', 'A password reset link has been sent to ' . esc($email) . '. Please check your inbox.');
             } else {
+                logSecurityEvent('password_reset_email_failed', [
+                    'user_id' => (int) $user['id'],
+                    'email' => strtolower($email),
+                    'ip' => $clientIp,
+                    'error' => (string) ($result['message'] ?? 'unknown_error')
+                ]);
                 setFlashMessage('error', 'Failed to send password reset email. ' . $result['message']);
             }
 
             return $this->showForgotForm();
         } catch (Throwable $e) {
+            logSecurityEvent('password_reset_error', [
+                'email' => strtolower(trim((string) ($postData['email'] ?? ''))),
+                'ip' => trim((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown')),
+                'error' => $e->getMessage()
+            ]);
             error_log('Forgot password error: ' . $e->getMessage());
             setFlashMessage('error', 'Something went wrong while processing your request. Please try again later.');
             return $this->showForgotForm();
@@ -144,8 +181,14 @@ class PasswordResetController
      */
     public function handleReset($token, $postData): array
     {
+        $clientIp = trim((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+
         // Validate token
         if (empty($token) || !User::isValidPasswordResetToken($token)) {
+            logSecurityEvent('password_reset_failed', [
+                'reason' => 'invalid_or_expired_token',
+                'ip' => $clientIp
+            ]);
             setFlashMessage('error', 'Invalid or expired reset link. Please request a new password reset.');
             redirect(BASE_URL . '/forgot-password.php');
             return [];
@@ -181,6 +224,10 @@ class PasswordResetController
         // Get password reset record
         $reset = User::findPasswordResetByToken($token);
         if (!$reset) {
+            logSecurityEvent('password_reset_failed', [
+                'reason' => 'token_not_found',
+                'ip' => $clientIp
+            ]);
             setFlashMessage('error', 'Invalid or expired reset link.');
             redirect(BASE_URL . '/forgot-password.php');
             return [];
@@ -191,10 +238,16 @@ class PasswordResetController
         $updated = User::updatePassword($reset['user_id'], $passwordHash);
         
         if (!$updated) {
+            logSecurityEvent('password_reset_failed', [
+                'reason' => 'password_update_failed',
+                'user_id' => (int) $reset['user_id'],
+                'email' => strtolower((string) ($reset['email'] ?? '')),
+                'ip' => $clientIp
+            ]);
             setFlashMessage('error', 'Failed to update password. Please try again.');
             return $this->showResetForm($token);
         }
-        
+
         // Delete used reset token
         User::deletePasswordResetToken($token);
         
@@ -204,6 +257,12 @@ class PasswordResetController
             $emailService = new ResendEmailService();
             $emailService->sendPasswordChangeConfirmation($user['email'], $user['username']);
         }
+
+        logSecurityEvent('password_reset_completed', [
+            'user_id' => (int) $reset['user_id'],
+            'email' => strtolower((string) ($reset['email'] ?? ($user['email'] ?? ''))),
+            'ip' => $clientIp
+        ]);
         
         setFlashMessage('success', 'Your password has been reset successfully! You can now login with your new password.');
         redirect(BASE_URL . '/login.php');

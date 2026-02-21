@@ -197,7 +197,7 @@
     </form>
 </section>
 
-<script>
+<script nonce="<?= esc(CSP_NONCE ?? ''); ?>">
 // TinyMCE Editor Initialization
 (function() {
     var contentTextarea = document.getElementById('content');

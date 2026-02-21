@@ -69,6 +69,87 @@ class User
         return password_verify($password, $passwordHash);
     }
 
+    public static function recordFailedLoginAttempt($userId)
+    {
+        $sql = "UPDATE users SET login_attempts = COALESCE(login_attempts, 0) + 1 WHERE id = ?";
+        $result = db_execute($sql, 'i', [(int) $userId]);
+
+        if (empty($result['success'])) {
+            return 0;
+        }
+
+        $status = self::getLoginSecurityStatus($userId);
+        return (int) ($status['login_attempts'] ?? 0);
+    }
+
+    public static function resetLoginAttempts($userId)
+    {
+        $sql = "UPDATE users SET login_attempts = 0, lockout_until = NULL WHERE id = ?";
+        $result = db_execute($sql, 'i', [(int) $userId]);
+        return !empty($result['success']);
+    }
+
+    public static function lockAccount($userId, $minutes = 30)
+    {
+        $durationMinutes = max(1, (int) $minutes);
+        $sql = "UPDATE users SET lockout_until = DATE_ADD(NOW(), INTERVAL ? MINUTE) WHERE id = ?";
+        $result = db_execute($sql, 'ii', [$durationMinutes, (int) $userId]);
+        return !empty($result['success']);
+    }
+
+    public static function getLoginSecurityStatus($userId)
+    {
+        $sql = "SELECT login_attempts, lockout_until FROM users WHERE id = ? LIMIT 1";
+        $row = db_fetch($sql, 'i', [(int) $userId]);
+
+        if (!$row) {
+            return [
+                'login_attempts' => 0,
+                'lockout_until' => null,
+                'is_locked' => false,
+                'remaining_seconds' => 0
+            ];
+        }
+
+        $loginAttempts = (int) ($row['login_attempts'] ?? 0);
+        $lockoutUntil = $row['lockout_until'] ?? null;
+        $isLocked = false;
+        $remainingSeconds = 0;
+
+        if (!empty($lockoutUntil)) {
+            $lockoutTimestamp = strtotime((string) $lockoutUntil);
+            if ($lockoutTimestamp !== false && $lockoutTimestamp > time()) {
+                $isLocked = true;
+                $remainingSeconds = $lockoutTimestamp - time();
+            }
+        }
+
+        if (!$isLocked && !empty($lockoutUntil)) {
+            self::resetLoginAttempts($userId);
+            $loginAttempts = 0;
+            $lockoutUntil = null;
+        }
+
+        return [
+            'login_attempts' => $loginAttempts,
+            'lockout_until' => $lockoutUntil,
+            'is_locked' => $isLocked,
+            'remaining_seconds' => max(0, (int) $remainingSeconds)
+        ];
+    }
+
+    public static function isAccountLocked($userId)
+    {
+        $status = self::getLoginSecurityStatus($userId);
+        return !empty($status['is_locked']);
+    }
+
+    public static function getRemainingLockoutSeconds($userId)
+    {
+        $status = self::getLoginSecurityStatus($userId);
+        return (int) ($status['remaining_seconds'] ?? 0);
+    }
+
     /**
      * Check if email exists
      * 

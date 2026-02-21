@@ -58,7 +58,7 @@
     </form>
 </div>
 
-<script>
+<script nonce="<?= esc(CSP_NONCE ?? ''); ?>">
 // Auto-generate slug from category name
 document.addEventListener('DOMContentLoaded', function() {
     const nameInput = document.getElementById('name');

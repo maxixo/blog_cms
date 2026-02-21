@@ -96,8 +96,7 @@
                                     </a>
                                     
                                     <form method="POST" action="<?= esc(BASE_URL); ?>/admin/posts.php" 
-                                          class="delete-form" 
-                                          onsubmit="return confirm('Are you sure you want to delete this post? This action cannot be undone.');">
+                                          class="delete-form">
                                         <input type="hidden" name="csrf_token" value="<?= generate_csrf_token(); ?>">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="post_id" value="<?= $post['id']; ?>">
@@ -128,7 +127,7 @@
     <?php endif; ?>
 </section>
 
-<script>
+<script nonce="<?= esc(CSP_NONCE ?? ''); ?>">
 document.addEventListener('DOMContentLoaded', function() {
     // Handle delete form submissions
     const deleteForms = document.querySelectorAll('.delete-form');

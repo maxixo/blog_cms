@@ -188,6 +188,12 @@ define('DEFAULT_AVATAR', UPLOADS_URL . '/avatars/default-avatar.png');
 define('DEFAULT_OG_IMAGE', UPLOADS_URL . '/avatars/default-avatar.png');
 
 if (php_sapi_name() !== 'cli' && !headers_sent()) {
+    $cspNonce = base64_encode(random_bytes(16));
+    if (!defined('CSP_NONCE')) {
+        define('CSP_NONCE', $cspNonce);
+    }
+
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-" . CSP_NONCE . "' https://cdn.jsdelivr.net https://cdn.tiny.cloud; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self';");
     header('X-Frame-Options: SAMEORIGIN');
     header('X-Content-Type-Options: nosniff');
     header('Referrer-Policy: strict-origin-when-cross-origin');

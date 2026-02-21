@@ -26,7 +26,7 @@
     <?php if (!empty($additionalJs)): ?>
         <?php foreach ($additionalJs as $js): ?>
             <?php if (strpos($js, 'tinymce') !== false): ?>
-                <script src="<?= esc($js); ?>"></script>
+                <script nonce="<?= esc(CSP_NONCE ?? ''); ?>" src="<?= esc($js); ?>"></script>
             <?php endif; ?>
         <?php endforeach; ?>
     <?php endif; ?>

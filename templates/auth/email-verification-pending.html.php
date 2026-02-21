@@ -33,7 +33,7 @@
     </p>
 </section>
 
-<script>
+<script nonce="<?= esc(CSP_NONCE ?? ''); ?>">
 document.addEventListener('DOMContentLoaded', function () {
     var form = document.getElementById('resend-verification-form');
     var messageBox = document.getElementById('resend-message');

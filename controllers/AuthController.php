@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/rate-limiter.php';
+require_once __DIR__ . '/../includes/security-logger.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../services/ResendEmailService.php';
 require_once __DIR__ . '/../config/EmailConfig.php';
@@ -55,6 +56,25 @@ class AuthController
         ];
     }
 
+    private function formatLockoutDuration($seconds)
+    {
+        $seconds = max(0, (int) $seconds);
+
+        if ($seconds < 60) {
+            return $seconds . ' second' . ($seconds === 1 ? '' : 's');
+        }
+
+        $minutes = intdiv($seconds, 60);
+        $remainingSeconds = $seconds % 60;
+
+        if ($remainingSeconds === 0) {
+            return $minutes . ' minute' . ($minutes === 1 ? '' : 's');
+        }
+
+        return $minutes . ' minute' . ($minutes === 1 ? '' : 's') . ' ' .
+            $remainingSeconds . ' second' . ($remainingSeconds === 1 ? '' : 's');
+    }
+
     public function login($postData)
     {
         // Verify CSRF token silently
@@ -89,26 +109,81 @@ class AuthController
         }
 
         $clientIp = trim((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
-        $loginRateLimitKey = 'login:' . strtolower($email) . ':' . $clientIp;
+        $normalizedEmail = strtolower($email);
+        $user = User::findByEmail($email);
+
+        if ($user && User::isAccountLocked((int) $user['id'])) {
+            $remainingSeconds = User::getRemainingLockoutSeconds((int) $user['id']);
+            logLoginAttempt($email, false, $clientIp);
+            logSecurityEvent('account_lockout_active', [
+                'user_id' => (int) $user['id'],
+                'email' => $normalizedEmail,
+                'ip' => $clientIp,
+                'remaining_seconds' => $remainingSeconds
+            ]);
+
+            setFlashMessage(
+                'error',
+                'Your account is temporarily locked. Try again in ' . $this->formatLockoutDuration($remainingSeconds) . '.'
+            );
+            return $this->showLoginForm();
+        }
+
+        $loginRateLimitKey = 'login:' . $normalizedEmail . ':' . $clientIp;
         if (!rateLimit($loginRateLimitKey, 5, 15 * 60)) {
+            logLoginAttempt($email, false, $clientIp);
+            logSecurityEvent('login_rate_limited', [
+                'email' => $normalizedEmail,
+                'ip' => $clientIp
+            ]);
+
             setFlashMessage('error', 'Too many login attempts. Please try again in 15 minutes.');
             return $this->showLoginForm();
         }
 
-        // Find user by email
-        $user = User::findByEmail($email);
-
         // Check if user exists
         if (!$user) {
+            logLoginAttempt($email, false, $clientIp);
             setFlashMessage('error', 'Invalid email or password.');
             return $this->showLoginForm();
         }
 
         // Verify password
         if (!User::verifyPassword($password, $user['password_hash'])) {
-            setFlashMessage('error', 'Invalid email or password.');
+            $failedAttempts = User::recordFailedLoginAttempt((int) $user['id']);
+            logLoginAttempt($email, false, $clientIp);
+
+            if ($failedAttempts >= 5) {
+                User::lockAccount((int) $user['id'], 30);
+                $remainingSeconds = User::getRemainingLockoutSeconds((int) $user['id']);
+
+                logSecurityEvent('account_lockout', [
+                    'user_id' => (int) $user['id'],
+                    'email' => $normalizedEmail,
+                    'ip' => $clientIp,
+                    'failed_attempts' => $failedAttempts,
+                    'remaining_seconds' => $remainingSeconds
+                ]);
+
+                setFlashMessage(
+                    'error',
+                    'Too many failed login attempts. Your account is locked for ' .
+                    $this->formatLockoutDuration($remainingSeconds) . '.'
+                );
+                return $this->showLoginForm();
+            }
+
+            $remainingAttempts = max(0, 5 - $failedAttempts);
+            $messageSuffix = $remainingAttempts > 0
+                ? ' ' . $remainingAttempts . ' attempt(s) remaining before lockout.'
+                : '';
+
+            setFlashMessage('error', 'Invalid email or password.' . $messageSuffix);
             return $this->showLoginForm();
         }
+
+        User::resetLoginAttempts((int) $user['id']);
+        logLoginAttempt($email, true, $clientIp);
 
         $emailVerified = true;
         if (array_key_exists('email_verified', $user)) {

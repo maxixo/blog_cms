@@ -46,8 +46,7 @@
                         <a href="<?= BASE_URL . '/admin/category-edit.php?id=' . $category['id']; ?>" class="btn btn-sm">
                             Edit
                         </a>
-                        <form method="POST" action="<?= BASE_URL . '/admin/categories.php'; ?>" class="inline-form"
-                              onsubmit="return confirm('Are you sure you want to delete this category?');">
+                        <form method="POST" action="<?= BASE_URL . '/admin/categories.php'; ?>" class="inline-form delete-category-form">
                             <input type="hidden" name="csrf_token" value="<?= esc($csrfToken ?? ''); ?>">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?= (int) $category['id']; ?>">
@@ -67,3 +66,16 @@
         </div>
     <?php endif; ?>
 </section>
+
+<script nonce="<?= esc(CSP_NONCE ?? ''); ?>">
+document.addEventListener('DOMContentLoaded', function () {
+    var forms = document.querySelectorAll('.delete-category-form');
+    forms.forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!confirm('Are you sure you want to delete this category?')) {
+                event.preventDefault();
+            }
+        });
+    });
+});
+</script>

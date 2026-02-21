@@ -80,7 +80,7 @@
     </div>
 </section>
 
-<script>
+<script nonce="<?= esc(CSP_NONCE ?? ''); ?>">
 document.addEventListener('DOMContentLoaded', function() {
     // Toggle password visibility for current password
     const toggleCurrentPassword = document.getElementById('toggleCurrentPassword');

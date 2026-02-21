@@ -58,8 +58,7 @@
                         <span class="badge badge-<?= $comment['status']; ?>">
                             <?= esc(ucfirst($comment['status'])); ?>
                         </span>
-                        <form method="POST" action="<?= BASE_URL . '/admin/comments.php'; ?>" class="inline-form"
-                              onsubmit="return confirm('Are you sure you want to delete this comment?');">
+                        <form method="POST" action="<?= BASE_URL . '/admin/comments.php'; ?>" class="inline-form delete-comment-form">
                             <input type="hidden" name="csrf_token" value="<?= esc($csrfToken ?? ''); ?>">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?= (int) $comment['id']; ?>">
@@ -101,3 +100,16 @@
         </div>
     <?php endif; ?>
 </section>
+
+<script nonce="<?= esc(CSP_NONCE ?? ''); ?>">
+document.addEventListener('DOMContentLoaded', function () {
+    var forms = document.querySelectorAll('.delete-comment-form');
+    forms.forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!confirm('Are you sure you want to delete this comment?')) {
+                event.preventDefault();
+            }
+        });
+    });
+});
+</script>
