@@ -89,6 +89,10 @@ ini_set('session.cookie_samesite', 'Lax');
 
 $basePathEnv = getenv('APP_BASE_PATH');
 $basePath = $basePathEnv !== false ? trim($basePathEnv) : '/blog_cms';
+if ($basePath !== '' && (preg_match('#^https?://#i', $basePath) === 1 || strpos($basePath, '.') !== false)) {
+    error_log('Invalid APP_BASE_PATH detected; expected only a path segment. Falling back to root.');
+    $basePath = '';
+}
 $basePath = '/' . trim($basePath, '/');
 if ($basePath === '/') {
     $basePath = '';

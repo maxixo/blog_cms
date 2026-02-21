@@ -28,12 +28,24 @@
         
         <label>
             Password
-            <input type="password" name="password" required minlength="6" placeholder="At least 6 characters">
+            <input
+                type="password"
+                name="password"
+                required
+                minlength="12"
+                placeholder="12+ chars, upper/lower, number, special"
+            >
         </label>
-        
+
         <label>
             Confirm Password
-            <input type="password" name="password_confirm" required minlength="6" placeholder="Re-enter your password">
+            <input
+                type="password"
+                name="password_confirm"
+                required
+                minlength="12"
+                placeholder="Re-enter your password"
+            >
         </label>
         
         <button type="submit">Create Account</button>

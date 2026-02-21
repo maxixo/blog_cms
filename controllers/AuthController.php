@@ -235,10 +235,9 @@ class AuthController
             return $this->showRegisterForm();
         }
 
-        // Verify CSRF token silently - if invalid, just regenerate and continue
+        // Verify CSRF token and return a user-facing session-expired message.
         if (!isset($postData['csrf_token']) || !verifyCsrfToken($postData['csrf_token'])) {
-            // Silently handle CSRF failure - regenerate token and show form without error
-            // This keeps security but doesn't expose technical messages to users
+            setFlashMessage('error', 'Your session expired. Please submit the form again.');
             return $this->showRegisterForm();
         }
 
@@ -325,6 +324,7 @@ class AuthController
         $userId = User::create($username, $email, $passwordHash);
 
         if (!$userId) {
+            error_log('Registration failed at user creation step for email: ' . strtolower($email));
             setFlashMessage('error', 'Registration failed. Please try again later.');
             return $this->showRegisterForm();
         }
