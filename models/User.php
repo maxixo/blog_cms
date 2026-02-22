@@ -343,12 +343,12 @@ class User
 
     /**
      * Check if user should reverify email (hasn't logged in for X hours)
-     * 
+     *
      * @param int $userId
-     * @param int $hours Number of hours threshold (default 48)
+     * @param int $hours Number of hours threshold (default 24)
      * @return bool True if user should reverify
      */
-    public static function shouldReverifyEmail($userId, $hours = 48)
+    public static function shouldReverifyEmail($userId, $hours = 24)
     {
         $lastLogin = self::getLastLoginTime($userId);
         
