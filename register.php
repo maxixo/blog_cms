@@ -3,6 +3,10 @@ require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/controllers/AuthController.php';
 
+if (isLoggedIn()) {
+    redirect(BASE_PATH . '/index.php');
+}
+
 try {
     $controller = new AuthController();
     if (is_post_request()) {
