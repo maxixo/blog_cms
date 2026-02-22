@@ -32,38 +32,28 @@ $bodyClass = $bodyClass ?? '';
     <link rel="stylesheet" href="<?= esc(ASSETS_URL); ?>/css/style.css">
 </head>
 <body class="<?= esc($bodyClass); ?>">
-<header class="site-header">
-    <div class="container site-header-inner">
-        <div class="site-brand">
-            <a class="site-logo" href="<?= esc(BASE_URL); ?>/">
-                <?= esc(SITE_NAME); ?>
-            </a>
-            <p class="site-tagline"><?= esc(SITE_TAGLINE); ?></p>
-        </div>
-        <nav class="site-nav" aria-label="Primary">
-            <div class="nav-links">
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/index.php">Home</a>
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/posts.php">Posts</a>
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/category.php">Categories</a>
-            </div>
-            <form class="nav-search" method="get" action="<?= esc(BASE_URL); ?>/search.php" role="search">
-                <label class="sr-only" for="nav-search-input">Search posts</label>
-                <input
-                    id="nav-search-input"
-                    type="search"
-                    name="q"
-                    placeholder="Search posts..."
-                    aria-label="Search posts"
-                    value="<?= esc($_GET['q'] ?? ''); ?>"
-                >
-                <button type="submit" aria-label="Submit search">Search</button>
-            </form>
-            <div class="nav-auth">
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/login.php">Login</a>
-                <span class="nav-sep">/</span>
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/register.php">Register</a>
-            </div>
-        </nav>
-    </div>
-</header>
+<?php
+$navCategories = [];
+try {
+    $sql = "SELECT 
+                c.id, c.name, c.slug,
+                COUNT(p.id) as post_count
+            FROM categories c
+            LEFT JOIN posts p ON p.category_id = c.id 
+                AND p.status = 'published'
+                AND (p.published_at IS NULL OR p.published_at <= NOW())
+            WHERE c.id IN (
+                SELECT DISTINCT category_id FROM posts 
+                WHERE category_id IS NOT NULL AND status = 'published'
+            )
+            GROUP BY c.id, c.name, c.slug
+            ORDER BY c.name ASC";
+
+    $navCategories = db_fetch_all($sql);
+} catch (Exception $e) {
+    $navCategories = [];
+}
+
+require __DIR__ . '/../templates/layout/nav.html.php';
+?>
 <main class="site-main">

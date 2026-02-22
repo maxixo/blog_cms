@@ -1,24 +1,24 @@
 <header class="site-header">
     <div class="container site-header-inner">
         <div class="site-brand">
-            <a class="site-logo" href="<?= esc(BASE_URL); ?>/">
+            <a class="site-logo" href="<?= esc(BASE_PATH); ?>/">
                 <?= esc(SITE_NAME); ?>
             </a>
             <p class="site-tagline"><?= esc(SITE_TAGLINE); ?></p>
         </div>
         <nav class="site-nav" aria-label="Primary">
             <div class="nav-links">
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/index.php">Home</a>
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/posts.php">Posts</a>
+                <a class="nav-link" href="<?= esc(BASE_PATH); ?>/index.php">Home</a>
+                <a class="nav-link" href="<?= esc(BASE_PATH); ?>/posts.php">Posts</a>
                 <div class="nav-dropdown">
-                    <a class="nav-link nav-dropdown-trigger" href="<?= esc(BASE_URL); ?>/category.php">
+                    <a class="nav-link nav-dropdown-trigger" href="<?= esc(BASE_PATH); ?>/category.php">
                         Categories
                         <span class="dropdown-arrow">▼</span>
                     </a>
                     <div class="dropdown-menu">
                         <?php if (!empty($navCategories)): ?>
                             <?php foreach ($navCategories as $category): ?>
-                                <a href="<?= esc(BASE_URL . '/category.php?slug=' . $category['slug']); ?>" class="dropdown-item">
+                                <a href="<?= esc(BASE_PATH . '/category.php?slug=' . urlencode((string) $category['slug'])); ?>" class="dropdown-item">
                                     <?= esc($category['name']); ?>
                                     <span class="badge badge-secondary"><?= esc($category['post_count']); ?></span>
                                 </a>
@@ -30,10 +30,10 @@
                         <?php endif; ?>
                     </div>
                 </div>
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/search.php">Search</a>
-                <a class="nav-link" href="<?= esc(BASE_URL); ?>/about.php">About</a>
+                <a class="nav-link" href="<?= esc(BASE_PATH); ?>/search.php">Search</a>
+                <a class="nav-link" href="<?= esc(BASE_PATH); ?>/about.php">About</a>
             </div>
-            <form class="nav-search" method="get" action="<?= esc(BASE_URL); ?>/search.php" role="search">
+            <form class="nav-search" method="get" action="<?= esc(BASE_PATH); ?>/search.php" role="search">
                 <label class="sr-only" for="nav-search-input">Search posts</label>
                 <input
                     id="nav-search-input"
@@ -63,48 +63,48 @@
                             </div>
                             <div class="user-dropdown-links">
                                 <?php if ($isAdminPage): ?>
-                                    <a href="<?= esc(BASE_URL); ?>/index.php" class="user-dropdown-link">
+                                    <a href="<?= esc(BASE_PATH); ?>/index.php" class="user-dropdown-link">
                                         <i class="user-icon">🏠</i> View Site
                                     </a>
-                                    <a href="<?= esc(BASE_URL); ?>/admin/index.php" class="user-dropdown-link">
+                                    <a href="<?= esc(BASE_PATH); ?>/admin/index.php" class="user-dropdown-link">
                                         <i class="user-icon">📊</i> Dashboard
                                     </a>
-                                    <a href="<?= esc(BASE_URL); ?>/admin/posts.php" class="user-dropdown-link">
+                                    <a href="<?= esc(BASE_PATH); ?>/admin/posts.php" class="user-dropdown-link">
                                         <i class="user-icon">📝</i> Posts
                                     </a>
-                                    <a href="<?= esc(BASE_URL); ?>/admin/post-create.php" class="user-dropdown-link">
+                                    <a href="<?= esc(BASE_PATH); ?>/admin/post-create.php" class="user-dropdown-link">
                                         <i class="user-icon">➕</i> Add Post
                                     </a>
-                                    <a href="<?= esc(BASE_URL); ?>/admin/categories.php" class="user-dropdown-link">
+                                    <a href="<?= esc(BASE_PATH); ?>/admin/categories.php" class="user-dropdown-link">
                                         <i class="user-icon">📁</i> Categories
                                     </a>
-                                    <a href="<?= esc(BASE_URL); ?>/admin/comments.php" class="user-dropdown-link">
+                                    <a href="<?= esc(BASE_PATH); ?>/admin/comments.php" class="user-dropdown-link">
                                         <i class="user-icon">💬</i> Comments
                                     </a>
-                                    <a href="<?= esc(BASE_URL); ?>/admin/users.php" class="user-dropdown-link">
+                                    <a href="<?= esc(BASE_PATH); ?>/admin/users.php" class="user-dropdown-link">
                                         <i class="user-icon">👥</i> Users
                                     </a>
-                                    <a href="<?= esc(BASE_URL); ?>/admin/profile.php" class="user-dropdown-link">
+                                    <a href="<?= esc(BASE_PATH); ?>/admin/profile.php" class="user-dropdown-link">
                                         <i class="user-icon">👤</i> Profile
                                     </a>
                                 <?php else: ?>
-                                    <a href="<?= esc(BASE_URL); ?>/admin/index.php" class="user-dropdown-link">
+                                    <a href="<?= esc(BASE_PATH); ?>/admin/index.php" class="user-dropdown-link">
                                         <i class="user-icon">⚙️</i> Admin Panel
                                     </a>
-                                    <a href="<?= esc(BASE_URL); ?>/admin/profile.php" class="user-dropdown-link">
+                                    <a href="<?= esc(BASE_PATH); ?>/admin/profile.php" class="user-dropdown-link">
                                         <i class="user-icon">👤</i> Profile
                                     </a>
                                 <?php endif; ?>
-                                <a href="<?= esc(BASE_URL); ?>/logout.php" class="user-dropdown-link">
+                                <a href="<?= esc(BASE_PATH); ?>/logout.php" class="user-dropdown-link">
                                     <i class="user-icon">🚪</i> Logout
                                 </a>
                             </div>
                         </div>
                     </div>
                 <?php else: ?>
-                    <a class="nav-link" href="<?= esc(BASE_URL); ?>/login.php">Login</a>
+                    <a class="nav-link" href="<?= esc(BASE_PATH); ?>/login.php">Login</a>
                     <span class="nav-sep">/</span>
-                    <a class="nav-link" href="<?= esc(BASE_URL); ?>/register.php">Register</a>
+                    <a class="nav-link" href="<?= esc(BASE_PATH); ?>/register.php">Register</a>
                 <?php endif; ?>
             </div>
         </nav>
