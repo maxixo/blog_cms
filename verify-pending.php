@@ -1,12 +1,13 @@
 <?php
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/includes/functions.php';
-require_once __DIR__ . '/controllers/EmailVerificationController.php';
-
-$controller = new EmailVerificationController();
-
 // Get token from query parameter
 $token = trim($_GET['token'] ?? '');
 
-// Process email verification
-$controller->verify($token);
+if ($token === '') {
+    setFlashMessage('error', 'Invalid verification link.');
+    redirect(BASE_URL . '/login.php');
+}
+
+// Legacy endpoint kept for backward compatibility with old email links.
+redirect(BASE_URL . '/verify-email.php?token=' . urlencode($token));

@@ -67,7 +67,7 @@ class EmailConfig
 
     public static function verificationUrl($token)
     {
-        return rtrim(BASE_URL, '/') . '/verify-pending.php?token=' . urlencode($token);
+        return rtrim(BASE_URL, '/') . '/verify-email.php?token=' . urlencode($token);
     }
 
     public static function passwordResetUrl($token)

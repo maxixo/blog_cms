@@ -5,6 +5,12 @@ require_once __DIR__ . '/controllers/EmailVerificationController.php';
 
 $controller = new EmailVerificationController();
 
+// Process direct verification links on the canonical verification route.
+$token = trim($_GET['token'] ?? '');
+if ($token !== '') {
+    $controller->verify($token);
+}
+
 // Get email from query parameter
 $email = trim($_GET['email'] ?? '');
 
