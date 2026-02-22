@@ -345,24 +345,24 @@ class User
      * Check if user should reverify email (hasn't logged in for X hours)
      *
      * @param int $userId
-     * @param int $hours Number of hours threshold (default 24)
+     * @param int $hours Number of hours threshold (default 48)
      * @return bool True if user should reverify
      */
-    public static function shouldReverifyEmail($userId, $hours = 24)
+    public static function shouldReverifyEmail($userId, $hours = 48)
     {
         $lastLogin = self::getLastLoginTime($userId);
         
         if ($lastLogin === null) {
-            return true; // User has never logged in
+            // If login tracking is unavailable (or first tracked login), avoid false re-prompts.
+            return false;
         }
         
         $lastLoginTime = strtotime($lastLogin);
         if ($lastLoginTime === false) {
-            return true; // Invalid timestamp
+            return false;
         }
-        
-        $hoursSinceLastLogin = (time() - $lastLoginTime) / 3600;
-        
-        return $hoursSinceLastLogin >= $hours;
+
+        $thresholdSeconds = max(1, (int) $hours) * 3600;
+        return (time() - $lastLoginTime) >= $thresholdSeconds;
     }
 }

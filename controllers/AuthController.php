@@ -202,7 +202,7 @@ class AuthController
 
         // Evaluate re-verification requirement before updating last login.
         // This preserves the previous login timestamp for threshold comparison.
-        $reverifyThresholdHours = 24;
+        $reverifyThresholdHours = 48;
         $shouldReverify = $emailVerified && User::shouldReverifyEmail($user['id'], $reverifyThresholdHours);
 
         // Update last login timestamp
@@ -222,7 +222,12 @@ class AuthController
         }
 
         if ($shouldReverify && EMAIL_VERIFICATION_REQUIRED) {
-            setFlashMessage('warning', 'For security, please verify your email address. You haven\'t logged in for over 24 hours.');
+            setFlashMessage(
+                'warning',
+                'For security, please verify your email address. You haven\'t logged in for over ' .
+                $reverifyThresholdHours .
+                ' hours.'
+            );
             redirect(BASE_URL . '/verify-email.php?email=' . urlencode($user['email']));
         }
 
