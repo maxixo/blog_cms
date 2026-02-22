@@ -151,6 +151,23 @@ class ResendEmailService
             ];
         }
 
+        if (!filter_var($this->senderEmail, FILTER_VALIDATE_EMAIL)) {
+            $this->logEmailAttempt('error', $toEmail, false, 'Invalid sender email: ' . $this->senderEmail);
+            return [
+                'success' => false,
+                'message' => 'Email sender is invalid. Please verify RESEND_FROM_EMAIL.'
+            ];
+        }
+
+        $senderLower = strtolower($this->senderEmail);
+        if (strpos($senderLower, 'example.com') !== false || strpos($senderLower, 'yourdomain.com') !== false) {
+            $this->logEmailAttempt('error', $toEmail, false, 'Sender email appears to be a placeholder: ' . $this->senderEmail);
+            return [
+                'success' => false,
+                'message' => 'Email sender is a placeholder. Set RESEND_FROM_EMAIL to a verified sender.'
+            ];
+        }
+
         $fromAddress = $this->senderEmail;
         if (!empty($this->senderName)) {
             $fromAddress = $this->senderName . ' <' . $this->senderEmail . '>';
@@ -163,7 +180,8 @@ class ResendEmailService
             'html' => $htmlContent
         ];
 
-        if ($this->debugMode) {
+        $isProduction = defined('APP_ENV') && APP_ENV === 'production';
+        if ($this->debugMode && !$isProduction) {
             if (php_sapi_name() === 'cli') {
                 echo "\033[33m[EMAIL DEBUG]\033[0m Debug mode is ENABLED - email will be logged but NOT sent" . PHP_EOL;
             }
@@ -174,13 +192,8 @@ class ResendEmailService
                 'message' => 'Email logged in debug mode'
             ];
         }
-
-        if (!function_exists('curl_init')) {
-            $this->logEmailAttempt('error', $toEmail, false, 'cURL extension not enabled');
-            return [
-                'success' => false,
-                'message' => 'Email service unavailable. Please contact the administrator.'
-            ];
+        if ($this->debugMode && $isProduction) {
+            $this->logEmailAttempt('warning', $toEmail, true, 'EMAIL_DEBUG=true in production; proceeding with real send');
         }
 
         $jsonData = json_encode($data);
@@ -192,31 +205,20 @@ class ResendEmailService
             echo json_encode($data, JSON_PRETTY_PRINT) . PHP_EOL;
         }
 
-        $ch = curl_init($this->emailsUrl);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $this->apiKey,
-            'Content-Type: application/json',
-            'Accept: application/json'
-        ]);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        $request = $this->sendHttpRequest($jsonData);
+        $response = (string) ($request['response'] ?? '');
+        $httpCode = (int) ($request['http_code'] ?? 0);
+        $transportError = (string) ($request['error'] ?? '');
+        $transportName = (string) ($request['transport'] ?? 'unknown');
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        if ($curlError) {
+        if ($transportError !== '') {
             if ($this->debugMode && php_sapi_name() === 'cli') {
-                echo "\033[31m[EMAIL ERROR]\033[0m cURL error: $curlError" . PHP_EOL;
+                echo "\033[31m[EMAIL ERROR]\033[0m Transport error ($transportName): $transportError" . PHP_EOL;
             }
-            $this->logEmailAttempt('error', $toEmail, false, 'cURL error: ' . $curlError);
+            $this->logEmailAttempt('error', $toEmail, false, "Transport error ($transportName): $transportError");
             return [
                 'success' => false,
-                'message' => 'Failed to send email. Please try again later. cURL error: ' . $curlError
+                'message' => 'Failed to send email. Please try again later.'
             ];
         }
 
@@ -228,7 +230,7 @@ class ResendEmailService
                     echo "\033[32m[EMAIL SUCCESS]\033[0m Response: $response" . PHP_EOL;
                 }
             }
-            $this->logEmailAttempt('success', $toEmail, true, 'Email sent successfully');
+            $this->logEmailAttempt('success', $toEmail, true, "Email sent successfully via $transportName (HTTP $httpCode)");
             return [
                 'success' => true,
                 'message' => 'Email sent successfully'
@@ -263,7 +265,7 @@ class ResendEmailService
             }
         }
 
-        $this->logEmailAttempt('error', $toEmail, false, "HTTP $httpCode: $errorMessage");
+        $this->logEmailAttempt('error', $toEmail, false, "Transport=$transportName HTTP $httpCode: $errorMessage");
 
         $userMessage = 'Failed to send email. Please try again later.';
         $errorLower = strtolower($errorMessage);
@@ -326,6 +328,7 @@ class ResendEmailService
         }
 
         file_put_contents($logFile, $logEntry, FILE_APPEND);
+        error_log('[email] ' . trim($logEntry));
     }
 
     /**
@@ -353,5 +356,75 @@ class ResendEmailService
         }
 
         file_put_contents($logFile, $logEntry, FILE_APPEND);
+    }
+
+    private function sendHttpRequest($jsonData): array
+    {
+        $headers = [
+            'Authorization: Bearer ' . $this->apiKey,
+            'Content-Type: application/json',
+            'Accept: application/json'
+        ];
+
+        if (function_exists('curl_init')) {
+            $ch = curl_init($this->emailsUrl);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+            $response = curl_exec($ch);
+            $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = (string) curl_error($ch);
+            curl_close($ch);
+
+            return [
+                'transport' => 'curl',
+                'response' => is_string($response) ? $response : '',
+                'http_code' => $httpCode,
+                'error' => $curlError
+            ];
+        }
+
+        $headerString = implode("\r\n", $headers);
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => $headerString,
+                'content' => $jsonData,
+                'ignore_errors' => true,
+                'timeout' => 30,
+            ]
+        ]);
+
+        $response = @file_get_contents($this->emailsUrl, false, $context);
+        $responseBody = is_string($response) ? $response : '';
+        $httpCode = 0;
+        $transportError = '';
+
+        if (isset($http_response_header) && is_array($http_response_header)) {
+            foreach ($http_response_header as $line) {
+                if (preg_match('#^HTTP/\S+\s+(\d{3})#', $line, $matches) === 1) {
+                    $httpCode = (int) $matches[1];
+                    break;
+                }
+            }
+        }
+
+        if ($response === false) {
+            $lastError = error_get_last();
+            $transportError = is_array($lastError) && isset($lastError['message'])
+                ? (string) $lastError['message']
+                : 'stream transport failed';
+        }
+
+        return [
+            'transport' => 'stream',
+            'response' => $responseBody,
+            'http_code' => $httpCode,
+            'error' => $transportError
+        ];
     }
 }

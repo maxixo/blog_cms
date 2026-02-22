@@ -3,9 +3,10 @@ require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/functions.php';
 
-$seoTitle = 'Tag - ' . SITE_NAME;
+$pageTitle = 'Tag - ' . SITE_NAME;
+$canonicalUrl = BASE_URL . '/tag.php';
 
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/templates/layout/header.html.php';
 ?>
 <section class="container">
     <h1>Tag</h1>
@@ -14,4 +15,4 @@ require_once __DIR__ . '/includes/header.php';
         <p class="muted">Choose a tag from the sidebar to see related posts.</p>
     </div>
 </section>
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/templates/layout/footer.html.php'; ?>
