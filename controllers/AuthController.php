@@ -75,6 +75,11 @@ class AuthController
             $remainingSeconds . ' second' . ($remainingSeconds === 1 ? '' : 's');
     }
 
+    private function logVerificationRedirectDecision(array $context): void
+    {
+        logSecurityEvent('login_verification_redirect', $context);
+    }
+
     public function login($postData)
     {
         // Verify CSRF token silently
@@ -190,38 +195,47 @@ class AuthController
             $emailVerified = !empty($user['email_verified']);
         }
 
-        // Create session for the user
-        session_start_safe();
-        session_regenerate_id(true);
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['email'] = $user['email'];
-        $_SESSION['role'] = $user['role'] ?? 'user';
-        $_SESSION['user_role'] = $_SESSION['role'];
-        $_SESSION['email_verified'] = $emailVerified ? 1 : 0;
-
         // Evaluate re-verification requirement before updating last login.
         // This preserves the previous login timestamp for threshold comparison.
+        $lastLoginAt = User::getLastLoginTime((int) $user['id']);
+        $lastLoginTimestamp = ($lastLoginAt !== null) ? strtotime((string) $lastLoginAt) : false;
+        $hoursSinceLastLogin = null;
+        if ($lastLoginTimestamp !== false) {
+            $hoursSinceLastLogin = round((time() - $lastLoginTimestamp) / 3600, 2);
+        }
+
         $reverifyThresholdHours = 48;
         $shouldReverify = $emailVerified && User::shouldReverifyEmail($user['id'], $reverifyThresholdHours);
-
-        // Update last login timestamp
-        User::updateLastLogin($user['id']);
-
-        regenerateCsrfToken();
+        $verificationContext = [
+            'user_id' => (int) $user['id'],
+            'email' => strtolower((string) $user['email']),
+            'email_verified' => $emailVerified ? 1 : 0,
+            'email_verification_required' => EMAIL_VERIFICATION_REQUIRED ? 1 : 0,
+            'last_login_at' => $lastLoginAt,
+            'hours_since_last_login' => $hoursSinceLastLogin,
+            'reverify_threshold_hours' => $reverifyThresholdHours,
+            'should_reverify' => $shouldReverify ? 1 : 0,
+            'ip' => $clientIp
+        ];
 
         // If email is not verified, handle verification
         if (!$emailVerified) {
+            clearAuthSession();
             if (EMAIL_VERIFICATION_REQUIRED) {
+                $verificationContext['redirect_reason'] = 'email_unverified';
+                $this->logVerificationRedirectDecision($verificationContext);
                 setFlashMessage('error', 'Please verify your email address to continue.');
                 redirect(BASE_URL . '/verify-email.php?email=' . urlencode($user['email']));
             }
 
-            setFlashMessage('success', 'Welcome back, ' . esc($user['username']) . '! Please verify your email address.');
-            redirect(BASE_URL);
+            setFlashMessage('warning', 'Please verify your email address before logging in.');
+            redirect(BASE_URL . '/verify-email.php?email=' . urlencode($user['email']));
         }
 
         if ($shouldReverify && EMAIL_VERIFICATION_REQUIRED) {
+            clearAuthSession();
+            $verificationContext['redirect_reason'] = 'last_login_threshold_exceeded';
+            $this->logVerificationRedirectDecision($verificationContext);
             setFlashMessage(
                 'warning',
                 'For security, please verify your email address. You haven\'t logged in for over ' .
@@ -230,6 +244,22 @@ class AuthController
             );
             redirect(BASE_URL . '/verify-email.php?email=' . urlencode($user['email']));
         }
+
+        $effectiveRole = getEffectiveUserRole($user);
+
+        // Create session for fully-authenticated users only.
+        session_start_safe();
+        session_regenerate_id(true);
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['email'] = $user['email'];
+        $_SESSION['role'] = $effectiveRole;
+        $_SESSION['user_role'] = $effectiveRole;
+        $_SESSION['email_verified'] = 1;
+
+        // Update last login timestamp only after authentication succeeds.
+        User::updateLastLogin((int) $user['id']);
+        regenerateCsrfToken();
 
         setFlashMessage('success', 'Welcome back, ' . esc($user['username']) . '!');
         redirect(BASE_URL);
@@ -347,17 +377,7 @@ class AuthController
             $sendResult = $mailer->sendVerificationEmail($email, $username, $token);
         }
 
-        // Set session for the new user
-        session_start_safe();
-        session_regenerate_id(true);
-        $_SESSION['user_id'] = $userId;
-        $_SESSION['username'] = $username;
-        $_SESSION['email'] = $email;
-        $_SESSION['role'] = 'user';
-        $_SESSION['user_role'] = 'user';
-        $_SESSION['email_verified'] = 0;
-
-        regenerateCsrfToken();
+        clearAuthSession();
 
         if (!$verificationCreated) {
             setFlashMessage('error', 'Registration complete, but we could not create a verification request. Please resend the email.');

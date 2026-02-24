@@ -46,11 +46,12 @@
                 <button type="submit" aria-label="Submit search">Search</button>
             </form>
             <div class="nav-auth">
-                <?php if (isLoggedIn()): ?>
+                <?php $currentUser = getCurrentUser(); ?>
+                <?php if ($currentUser !== null): ?>
                     <?php 
-                        $currentUser = getCurrentUser();
                         $username = $currentUser['username'] ?? 'User';
                         $initials = getInitials($username);
+                        $isAdminUser = getEffectiveUserRole($currentUser) === 'admin';
                         $isAdminPage = !empty($bodyClass) && strpos($bodyClass, 'admin-page') !== false;
                     ?>
                     <div class="user-menu">
@@ -62,7 +63,7 @@
                                 <span class="user-dropdown-name"><?= esc($username); ?></span>
                             </div>
                             <div class="user-dropdown-links">
-                                <?php if ($isAdminPage): ?>
+                                <?php if ($isAdminUser && $isAdminPage): ?>
                                     <a href="<?= esc(BASE_PATH); ?>/index.php" class="user-dropdown-link">
                                         <i class="user-icon">🏠</i> View Site
                                     </a>
@@ -87,7 +88,7 @@
                                     <a href="<?= esc(BASE_PATH); ?>/admin/profile.php" class="user-dropdown-link">
                                         <i class="user-icon">👤</i> Profile
                                     </a>
-                                <?php else: ?>
+                                <?php elseif ($isAdminUser): ?>
                                     <a href="<?= esc(BASE_PATH); ?>/admin/index.php" class="user-dropdown-link">
                                         <i class="user-icon">⚙️</i> Admin Panel
                                     </a>

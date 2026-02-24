@@ -45,32 +45,90 @@ function session_start_safe()
     }
 }
 
-function isLoggedIn()
+function clearAuthSession()
 {
     session_start_safe();
-    return isset($_SESSION['user_id']);
+    unset(
+        $_SESSION['user_id'],
+        $_SESSION['username'],
+        $_SESSION['email'],
+        $_SESSION['role'],
+        $_SESSION['user_role'],
+        $_SESSION['email_verified']
+    );
+    session_regenerate_id(true);
+    regenerateCsrfToken();
+}
+
+function isUserRecordVerified($user)
+{
+    if (!is_array($user)) {
+        return false;
+    }
+
+    return !empty($user['email_verified']);
+}
+
+function isAdminEmail($email)
+{
+    $normalizedEmail = strtolower(trim((string) $email));
+    if ($normalizedEmail === '' || !filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+
+    $allowlist = defined('ADMIN_EMAIL_ALLOWLIST') && is_array(ADMIN_EMAIL_ALLOWLIST)
+        ? ADMIN_EMAIL_ALLOWLIST
+        : [];
+
+    return in_array($normalizedEmail, $allowlist, true);
+}
+
+function getEffectiveUserRole($user)
+{
+    if (!is_array($user) || !isUserRecordVerified($user)) {
+        return 'user';
+    }
+
+    return isAdminEmail($user['email'] ?? '') ? 'admin' : 'user';
+}
+
+function isLoggedIn()
+{
+    return getCurrentUser() !== null;
 }
 
 function getCurrentUser()
 {
     session_start_safe();
-    if (isset($_SESSION['user_id'])) {
-        require_once __DIR__ . '/../models/User.php';
-        return User::findById($_SESSION['user_id']);
+    if (!isset($_SESSION['user_id'])) {
+        return null;
     }
-    return null;
+
+    require_once __DIR__ . '/../models/User.php';
+    $user = User::findById((int) $_SESSION['user_id']);
+    if (!$user || !isUserRecordVerified($user)) {
+        clearAuthSession();
+        return null;
+    }
+
+    $effectiveRole = getEffectiveUserRole($user);
+    $_SESSION['username'] = $user['username'] ?? '';
+    $_SESSION['email'] = $user['email'] ?? '';
+    $_SESSION['email_verified'] = 1;
+    $_SESSION['role'] = $effectiveRole;
+    $_SESSION['user_role'] = $effectiveRole;
+
+    return $user;
 }
 
 function getCurrentUserRole()
 {
-    session_start_safe();
-    if (isset($_SESSION['role'])) {
-        return $_SESSION['role'];
+    $currentUser = getCurrentUser();
+    if ($currentUser === null) {
+        return 'user';
     }
-    if (isset($_SESSION['user_role'])) {
-        return $_SESSION['user_role'];
-    }
-    return 'user';
+
+    return getEffectiveUserRole($currentUser);
 }
 
 function isAdmin()

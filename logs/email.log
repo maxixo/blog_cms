@@ -10,3 +10,5 @@
 2026-02-15 08:24:37 | Type: error | Email: oshodioyin@gmail.com | Success: no | Message: HTTP 403: The blogcms.online domain is not verified. Please, add and verify your domain on https://resend.com/domains
 2026-02-15 08:49:48 | Type: success | Email: oshodioyin@gmail.com | Success: yes | Message: Email sent successfully
 2026-02-15 08:53:08 | Type: success | Email: oshodioyin@gmail.com | Success: yes | Message: Email sent successfully
+2026-02-24 10:44:48 | Type: success | Email: tranktp100@gmail.com | Success: yes | Message: Email sent successfully via curl (HTTP 200)
+2026-02-24 10:53:43 | Type: success | Email: oshodioyin@gmail.com | Success: yes | Message: Email sent successfully via curl (HTTP 200)

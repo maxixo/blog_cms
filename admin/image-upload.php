@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/uploads.php';
 
 header('Content-Type: application/json; charset=UTF-8');
 
-if (!isLoggedIn()) {
+if (!isAdmin()) {
     http_response_code(403);
     echo json_encode(['error' => 'Unauthorized request.']);
     exit;

@@ -131,6 +131,29 @@ define('SITE_TAGLINE', getenv('SITE_TAGLINE') ?: 'Publishing with clarity.');
 define('SITE_DESCRIPTION', getenv('SITE_DESCRIPTION') ?: 'A full-featured blog and content management system.');
 define('SITE_EMAIL', getenv('SITE_EMAIL') ?: 'admin@example.com');
 
+$adminEmail = strtolower(trim((string) (getenv('ADMIN_EMAIL') ?: '')));
+$adminEmails = trim((string) (getenv('ADMIN_EMAILS') ?: ''));
+$adminEmailAllowlist = [];
+
+if ($adminEmail !== '' && filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
+    $adminEmailAllowlist[] = $adminEmail;
+}
+
+if ($adminEmails !== '') {
+    $parts = array_map('trim', explode(',', $adminEmails));
+    foreach ($parts as $candidateEmail) {
+        $normalizedEmail = strtolower($candidateEmail);
+        if ($normalizedEmail !== '' && filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL)) {
+            $adminEmailAllowlist[] = $normalizedEmail;
+        }
+    }
+}
+
+$adminEmailAllowlist = array_values(array_unique($adminEmailAllowlist));
+define('ADMIN_EMAIL', $adminEmail);
+define('ADMIN_EMAILS', $adminEmails);
+define('ADMIN_EMAIL_ALLOWLIST', $adminEmailAllowlist);
+
 // RSS Feed Settings
 define('RSS_FEED_LIMIT', (int) (getenv('RSS_FEED_LIMIT') ?: 20));
 define('RSS_CACHE_DURATION', (int) (getenv('RSS_CACHE_DURATION') ?: 1800));
