@@ -232,6 +232,28 @@ if (!defined('CSP_NONCE')) {
 }
 
 if (php_sapi_name() !== 'cli' && !headers_sent()) {
+    $scriptPath = strtolower(str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? '')));
+    $nonHtmlScripts = [
+        '/rss.php',
+        '/sitemap.xml.php',
+        '/admin/image-upload.php'
+    ];
+    $isLikelyHtmlDocument = !in_array($scriptPath, $nonHtmlScripts, true);
+
+    if ($isLikelyHtmlDocument) {
+        // Shared caches must vary by cookie because navbar auth state is session-dependent.
+        header('Vary: Cookie', false);
+
+        $sessionCookieName = session_name();
+        $hasSessionCookie = ($sessionCookieName !== '') && isset($_COOKIE[$sessionCookieName]);
+        if ($hasSessionCookie) {
+            // Prevent stale anonymous HTML being served to authenticated/session users.
+            header('Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+        }
+    }
+
     header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-" . CSP_NONCE . "' https://cdn.jsdelivr.net https://cdn.tiny.cloud; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self';");
     header('X-Frame-Options: SAMEORIGIN');
     header('X-Content-Type-Options: nosniff');
