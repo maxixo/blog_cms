@@ -236,7 +236,8 @@ if (php_sapi_name() !== 'cli' && !headers_sent()) {
     $nonHtmlScripts = [
         '/rss.php',
         '/sitemap.xml.php',
-        '/admin/image-upload.php'
+        '/admin/image-upload.php',
+        '/auth-status.php'
     ];
     $isLikelyHtmlDocument = !in_array($scriptPath, $nonHtmlScripts, true);
 

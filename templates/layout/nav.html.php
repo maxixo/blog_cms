@@ -45,7 +45,7 @@
                 >
                 <button type="submit" aria-label="Submit search">Search</button>
             </form>
-            <div class="nav-auth">
+            <div class="nav-auth" data-auth-status-url="<?= esc(BASE_PATH); ?>/auth-status.php" data-base-path="<?= esc(BASE_PATH); ?>">
                 <?php $currentUser = getCurrentUser(); ?>
                 <?php if ($currentUser !== null): ?>
                     <?php 
@@ -103,9 +103,9 @@
                         </div>
                     </div>
                 <?php else: ?>
-                    <a class="nav-link" href="<?= esc(BASE_PATH); ?>/login.php">Login</a>
+                    <a class="nav-link nav-auth-login" href="<?= esc(BASE_PATH); ?>/login.php">Login</a>
                     <span class="nav-sep">/</span>
-                    <a class="nav-link" href="<?= esc(BASE_PATH); ?>/register.php">Register</a>
+                    <a class="nav-link nav-auth-register" href="<?= esc(BASE_PATH); ?>/register.php">Register</a>
                 <?php endif; ?>
             </div>
         </nav>

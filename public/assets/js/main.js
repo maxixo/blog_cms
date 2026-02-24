@@ -44,49 +44,155 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // User Dropdown Menu Toggle
-    var userMenu = document.querySelector('.user-menu');
-    if (userMenu) {
+    var bindUserMenu = function (userMenu) {
+        if (!userMenu) {
+            return;
+        }
+        if (userMenu.dataset.bound === '1') {
+            return;
+        }
+        userMenu.dataset.bound = '1';
+
         var userAvatar = userMenu.querySelector('.user-avatar');
         var userDropdown = userMenu.querySelector('.user-dropdown');
 
-        if (userAvatar && userDropdown) {
-            // Toggle dropdown when avatar is clicked
-            userAvatar.addEventListener('click', function (e) {
-                e.stopPropagation();
-                var isOpen = userDropdown.classList.contains('is-open');
-                
-                if (isOpen) {
-                    userDropdown.classList.remove('is-open');
-                    userAvatar.classList.remove('is-open');
-                    userAvatar.setAttribute('aria-expanded', 'false');
-                } else {
-                    userDropdown.classList.add('is-open');
-                    userAvatar.classList.add('is-open');
-                    userAvatar.setAttribute('aria-expanded', 'true');
-                }
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function (e) {
-                if (!userMenu.contains(e.target)) {
-                    userDropdown.classList.remove('is-open');
-                    userAvatar.classList.remove('is-open');
-                    userAvatar.setAttribute('aria-expanded', 'false');
-                }
-            });
-
-            // Close dropdown when clicking on a dropdown link
-            var dropdownLinks = userDropdown.querySelectorAll('.user-dropdown-link');
-            dropdownLinks.forEach(function (link) {
-                link.addEventListener('click', function () {
-                    userDropdown.classList.remove('is-open');
-                    userAvatar.classList.remove('is-open');
-                    userAvatar.setAttribute('aria-expanded', 'false');
-                });
-            });
+        if (!userAvatar || !userDropdown) {
+            return;
         }
-    }
+
+        // Toggle dropdown when avatar is clicked
+        userAvatar.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var isOpen = userDropdown.classList.contains('is-open');
+
+            if (isOpen) {
+                userDropdown.classList.remove('is-open');
+                userAvatar.classList.remove('is-open');
+                userAvatar.setAttribute('aria-expanded', 'false');
+            } else {
+                userDropdown.classList.add('is-open');
+                userAvatar.classList.add('is-open');
+                userAvatar.setAttribute('aria-expanded', 'true');
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!userMenu.contains(e.target)) {
+                userDropdown.classList.remove('is-open');
+                userAvatar.classList.remove('is-open');
+                userAvatar.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Close dropdown when clicking on a dropdown link
+        var dropdownLinks = userDropdown.querySelectorAll('.user-dropdown-link');
+        dropdownLinks.forEach(function (link) {
+            link.addEventListener('click', function () {
+                userDropdown.classList.remove('is-open');
+                userAvatar.classList.remove('is-open');
+                userAvatar.setAttribute('aria-expanded', 'false');
+            });
+        });
+    };
+
+    var createUserMenu = function (navAuth, authData) {
+        var basePath = navAuth.getAttribute('data-base-path') || '';
+        var username = authData.username || 'User';
+        var initials = authData.initials || 'U';
+
+        var userMenu = document.createElement('div');
+        userMenu.className = 'user-menu';
+
+        var userAvatar = document.createElement('div');
+        userAvatar.className = 'user-avatar';
+        userAvatar.setAttribute('title', username);
+        userAvatar.setAttribute('aria-expanded', 'false');
+        userAvatar.textContent = initials;
+        userMenu.appendChild(userAvatar);
+
+        var userDropdown = document.createElement('div');
+        userDropdown.className = 'user-dropdown';
+
+        var dropdownHeader = document.createElement('div');
+        dropdownHeader.className = 'user-dropdown-header';
+        var dropdownName = document.createElement('span');
+        dropdownName.className = 'user-dropdown-name';
+        dropdownName.textContent = username;
+        dropdownHeader.appendChild(dropdownName);
+        userDropdown.appendChild(dropdownHeader);
+
+        var dropdownLinks = document.createElement('div');
+        dropdownLinks.className = 'user-dropdown-links';
+
+        if (authData.is_admin === true) {
+            var adminLink = document.createElement('a');
+            adminLink.href = basePath + '/admin/index.php';
+            adminLink.className = 'user-dropdown-link';
+            adminLink.textContent = 'Admin Panel';
+            dropdownLinks.appendChild(adminLink);
+        }
+
+        var logoutLink = document.createElement('a');
+        logoutLink.href = basePath + '/logout.php';
+        logoutLink.className = 'user-dropdown-link';
+        logoutLink.textContent = 'Logout';
+        dropdownLinks.appendChild(logoutLink);
+
+        userDropdown.appendChild(dropdownLinks);
+        userMenu.appendChild(userDropdown);
+
+        return userMenu;
+    };
+
+    var syncNavbarAuthState = function () {
+        var navAuth = document.querySelector('.nav-auth');
+        if (!navAuth || navAuth.querySelector('.user-menu')) {
+            return;
+        }
+
+        var statusUrl = navAuth.getAttribute('data-auth-status-url') || '/auth-status.php';
+        fetch(statusUrl, {
+            method: 'GET',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+            .then(function (response) {
+                if (!response.ok) {
+                    return null;
+                }
+
+                var contentType = response.headers.get('content-type') || '';
+                if (contentType.indexOf('application/json') === -1) {
+                    return null;
+                }
+
+                return response.json();
+            })
+            .then(function (data) {
+                if (!data || data.authenticated !== true) {
+                    return;
+                }
+
+                if (navAuth.querySelector('.user-menu')) {
+                    return;
+                }
+
+                navAuth.replaceChildren(createUserMenu(navAuth, data));
+                bindUserMenu(navAuth.querySelector('.user-menu'));
+            })
+            .catch(function () {
+                return null;
+            });
+    };
+
+    // User dropdown for server-rendered user menu
+    bindUserMenu(document.querySelector('.user-menu'));
+    // Auth re-sync for cached anonymous HTML responses
+    syncNavbarAuthState();
 
     // Category Dropdown Menu Toggle (Mobile Touch Support)
     var navDropdowns = document.querySelectorAll('.nav-dropdown');
