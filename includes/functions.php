@@ -13,6 +13,11 @@ function esc($value)
 
 function redirect($url)
 {
+    if (!headers_sent()) {
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+    }
     header('Location: ' . $url);
     exit;
 }

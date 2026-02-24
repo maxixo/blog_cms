@@ -241,14 +241,18 @@ if (php_sapi_name() !== 'cli' && !headers_sent()) {
     $isLikelyHtmlDocument = !in_array($scriptPath, $nonHtmlScripts, true);
 
     if ($isLikelyHtmlDocument) {
-        // Shared caches must vary by cookie because navbar auth state is session-dependent.
+        // Navbar auth state is session-dependent, so document cache must account for cookies.
         header('Vary: Cookie', false);
+
+        // Force browser/shared caches to revalidate HTML pages so pre-login anonymous pages
+        // are not blindly reused after login.
+        header('Cache-Control: no-cache, max-age=0, must-revalidate, s-maxage=0');
 
         $sessionCookieName = session_name();
         $hasSessionCookie = ($sessionCookieName !== '') && isset($_COOKIE[$sessionCookieName]);
         if ($hasSessionCookie) {
-            // Prevent stale anonymous HTML being served to authenticated/session users.
-            header('Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0');
+            // Stronger protection for logged-in/session traffic.
+            header('Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0, s-maxage=0');
             header('Pragma: no-cache');
             header('Expires: 0');
         }
