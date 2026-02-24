@@ -1,5 +1,8 @@
 <section class="container">
-    <h1><?= esc($pageHeading ?? 'All Posts'); ?></h1>
+    <div class="posts-page-header">
+        <h1><?= esc($pageHeading ?? 'All Posts'); ?></h1>
+        <a class="button-link" href="<?= esc(BASE_URL); ?>/post-create.php">Create Post</a>
+    </div>
 
     <?php if (!empty($filtersActive)): ?>
         <p class="muted">

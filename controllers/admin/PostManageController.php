@@ -30,12 +30,16 @@ class PostManageController
         );
     }
 
-    public function create()
+    public function create(array $options = [])
     {
+        $isAdminView = isset($options['isAdminView']) ? (bool) $options['isAdminView'] : true;
+        $backUrl = $options['backUrl'] ?? (BASE_URL . '/admin/posts.php');
+        $uploadUrl = $options['uploadUrl'] ?? (BASE_URL . '/admin/image-upload.php');
+
         $pageHeading = 'Create New Post';
         $pageDescription = 'Write and publish your blog post.';
         $pageTitle = 'Create Post - ' . SITE_NAME;
-        $bodyClass = 'admin-page';
+        $bodyClass = $isAdminView ? 'admin-page' : '';
         $additionalCss = [ASSETS_URL . '/css/admin.css'];
         $additionalJs = [
             ASSETS_URL . '/js/admin.js',
@@ -60,15 +64,20 @@ class PostManageController
             'additionalJs',
             'categories',
             'errors',
-            'formData'
+            'formData',
+            'backUrl',
+            'uploadUrl'
         );
     }
 
-    public function store()
+    public function store(array $options = [])
     {
+        $listUrl = $options['listUrl'] ?? (BASE_URL . '/admin/posts.php');
+        $createUrl = $options['createUrl'] ?? (BASE_URL . '/admin/post-create.php');
+
         if (!isset($_POST['csrf_token']) || !verify_csrf_token($_POST['csrf_token'])) {
             $_SESSION['error_message'] = 'Invalid request. Please try again.';
-            header('Location: ' . BASE_URL . '/admin/posts.php');
+            header('Location: ' . $listUrl);
             exit;
         }
 
@@ -87,7 +96,7 @@ class PostManageController
             $_SESSION['form_errors'] = $errors;
             $_SESSION['form_data'] = $_POST;
             $_SESSION['error_message'] = 'Please fix the errors below.';
-            header('Location: ' . BASE_URL . '/admin/post-create.php');
+            header('Location: ' . $createUrl);
             exit;
         }
 
@@ -99,7 +108,7 @@ class PostManageController
                 $featured_image = $upload['path'];
             } else {
                 $_SESSION['error_message'] = $upload['error'];
-                header('Location: ' . BASE_URL . '/admin/post-create.php');
+                header('Location: ' . $createUrl);
                 exit;
             }
         }
@@ -128,11 +137,11 @@ class PostManageController
         if ($postId) {
             $_SESSION['success_message'] = 'Post ' . 
                 (($_POST['status'] ?? 'draft') === 'published' ? 'published' : 'saved as draft') . ' successfully!';
-            header('Location: ' . BASE_URL . '/admin/posts.php');
+            header('Location: ' . $listUrl);
             exit;
         } else {
             $_SESSION['error_message'] = 'Failed to create post. Please try again.';
-            header('Location: ' . BASE_URL . '/admin/post-create.php');
+            header('Location: ' . $createUrl);
             exit;
         }
     }

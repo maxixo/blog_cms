@@ -438,6 +438,19 @@ p {
     padding: 32px 0 64px;
 }
 
+.posts-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.posts-page-header h1 {
+    margin-bottom: 0;
+}
+
 /* About Page */
 .about-page .about-hero {
     padding: 16px 0 28px;

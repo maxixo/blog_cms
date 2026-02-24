@@ -1,8 +1,12 @@
 <section class="container">
+    <?php
+    $backToPostsUrl = $backUrl ?? (BASE_URL . '/admin/posts.php');
+    $imageUploadUrl = $uploadUrl ?? (BASE_URL . '/admin/image-upload.php');
+    ?>
     <div class="admin-header">
         <h1><?= esc($pageHeading ?? 'Post'); ?></h1>
         <p><?= esc($pageDescription ?? ''); ?></p>
-        <a href="<?= esc(BASE_URL); ?>/admin/posts.php" class="btn btn-secondary">← Back to Posts</a>
+        <a href="<?= esc($backToPostsUrl); ?>" class="btn btn-secondary">&larr; Back to Posts</a>
     </div>
 
     <?php if (!empty($errors)): ?>
@@ -203,7 +207,7 @@
     var contentTextarea = document.getElementById('content');
     var csrfTokenInput = document.querySelector('input[name="csrf_token"]');
     var csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
-    var uploadUrl = <?= json_encode(BASE_URL . '/admin/image-upload.php'); ?>;
+    var uploadUrl = <?= json_encode($imageUploadUrl); ?>;
     
     // Initialize TinyMCE when script is loaded
     function initTinyMCE() {
